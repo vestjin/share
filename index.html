@@ -11,9 +11,9 @@
 <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
 <style>
 :root{
-  --bg:#16130f; --panel:#1e1913; --panel2:#241e16;
+  --bg:#16130f; --panel:#1e1913;
   --line:#352c1f; --line2:#4a3d29;
-  --amber:#f0a832; --amber-deep:#b37816; --amber-dark:#6b4c14;
+  --amber:#f0a832; --amber-deep:#b37816;
   --ink:#e9e1d0; --mut:#8f8471; --dim:#5f584a;
   --green:#4ade80; --paper:#f4efe3; --paper-ink:#2b241a; --paper-mut:#7d7362;
   --mono:'JetBrains Mono',ui-monospace,monospace;
@@ -56,7 +56,7 @@ a{color:inherit;text-decoration:none}
 
 .side-foot{margin-top:auto;padding:18px 22px 0;border-top:1px dashed var(--line2);font-family:var(--mono);font-size:10.5px;color:var(--mut);line-height:2}
 .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);margin-right:6px;vertical-align:1px}
-.dot.warn{background:var(--amber)} .dot.err{background:#e05555}
+.dot.warn{background:var(--amber)}
 #refreshBtn{background:none;border:1px solid var(--line2);color:var(--mut);font-family:var(--mono);font-size:10px;padding:4px 10px;cursor:pointer;margin-top:8px;letter-spacing:.1em;transition:.12s}
 #refreshBtn:hover{border-color:var(--amber);color:var(--amber)}
 
@@ -77,10 +77,8 @@ a{color:inherit;text-decoration:none}
 .fitem{display:flex;align-items:baseline;gap:12px;padding:13px 10px;border-bottom:1px solid var(--line);transition:background .12s,color .12s;cursor:pointer}
 .fitem .no{font-family:var(--mono);font-size:11px;color:var(--amber-deep);width:26px;flex:none}
 .fitem .fn{flex:1;min-width:0;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.fitem .fp{font-family:var(--mono);font-size:10px;color:var(--dim);flex:none;max-width:34%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.fitem .sz{font-family:var(--mono);font-size:10.5px;color:var(--mut);flex:none}
 .fitem:hover{background:var(--amber);color:#16130f}
-.fitem:hover .no,.fitem:hover .fp,.fitem:hover .sz{color:#16130f}
+.fitem:hover .no{color:#16130f}
 
 .empty{margin-top:28px;border:1px dashed var(--line2);padding:30px 26px;color:var(--mut);font-size:14px;line-height:2}
 .empty code{font-family:var(--mono);color:var(--amber);background:var(--panel);padding:2px 7px;font-size:12.5px}
@@ -132,14 +130,6 @@ a{color:inherit;text-decoration:none}
 .art-nav .nx{text-align:right}
 .art-nav a span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-.setup{border:1px solid var(--amber-deep);padding:28px clamp(18px,4vw,40px);margin-top:20px}
-.setup h2{font-family:var(--disp);font-weight:400;font-size:24px;color:var(--amber);letter-spacing:.06em;margin-bottom:14px}
-.setup ol{margin:14px 0 14px 1.4em;line-height:2.1;font-size:14.5px}
-.setup code,.setup pre{font-family:var(--mono)}
-.setup code{color:var(--amber)}
-.setup pre{background:var(--panel);border:1px solid var(--line);padding:16px;font-size:12px;line-height:1.8;overflow-x:auto;color:var(--mut);margin:10px 0}
-.setup pre b{color:var(--amber);font-weight:400}
-
 #toast{position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(20px);background:#0d0b08;border:1px solid var(--amber);color:var(--amber);font-family:var(--mono);font-size:12.5px;padding:11px 22px;opacity:0;pointer-events:none;transition:.25s;z-index:100;letter-spacing:.05em}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
@@ -159,7 +149,6 @@ a{color:inherit;text-decoration:none}
   .cat .nm small,.cat .no{display:none}
   .cat.on::before{left:4px;top:50%;transform:translateY(-50%)}
   #main{padding:24px 16px 60px}
-  .fitem .fp{display:none}
   .paper{font-size:15.5px;padding:22px 18px}
 }
 </style>
@@ -175,13 +164,13 @@ a{color:inherit;text-decoration:none}
         <div id="pixlogo" aria-hidden="true"></div>
         <h1 id="siteName">手记档案馆</h1>
       </div>
-      <p id="brandSub">FIELD NOTES // <b>loading…</b></p>
+      <p id="brandSub">FIELD NOTES // <b>vestjin/share</b></p>
     </div>
     <div class="cats-hint">── 分类目录 ──</div>
     <nav id="cats"></nav>
     <div class="side-foot">
-      <div id="statusLine"><span class="dot warn"></span>初始化中…</div>
-      <div style="color:var(--dim)">jsDelivr CDN · 免 API 限额<br>新文件需几分钟同步</div>
+      <div id="statusLine"><span class="dot"></span>同源加载 · 无任何 API</div>
+      <div style="color:var(--dim)">push 后刷新即见<br>新文件记得更新清单</div>
       <button id="refreshBtn" type="button">↻ 强制刷新缓存</button>
     </div>
   </aside>
@@ -193,37 +182,34 @@ a{color:inherit;text-decoration:none}
 
 <script>
 /* ═══════════════════════════════════════════════════════════
- * ① 填写你的仓库信息（仓库需为 Public）
- *    例如 https://github.com/xiaoming/notes
- *    → REPO_OWNER:'xiaoming'  REPO_NAME:'notes'
+ * 文件清单 —— 唯一需要维护的地方
+ *
+ * 用法：每次往文件夹里加了新 .md，就在对应数组里加一行 '文件名.md'
+ * 顺序 = 页面显示顺序，可随意调整
  * ═══════════════════════════════════════════════════════════ */
-const REPO_OWNER = 'vestjin';   // ← 改成你的 GitHub 用户名
-const REPO_NAME  = 'share';       // ← 改成你的仓库名
-const BRANCH     = 'main';            // ← 分支名，一般不用动
+const SITE_NAME = '手记档案馆';
+const BRANCH    = 'main';
 
-/* ═══════════════════════════════════════════════════════════
- * ② 分类配置：folder = 仓库里的文件夹名（中文可用）
- * ═══════════════════════════════════════════════════════════ */
-const SITE_NAME = '手记档案馆';       // ← 站点名称，随意改
-const CATEGORIES = [
-  { name:'游戏类文档',   folder:'游戏类文档',   desc:'攻略 · 存档 · 碎碎念' },
-  { name:'临时文档分享', folder:'临时文档分享', desc:'随手贴 · 用完即弃' },
-];
-/* ═══════════════════════════════ 配置结束 ═══════════════════ */
+const FILES = {
+  '游戏类文档': [
+    // ↓ 新增一篇就在这里加一行，如 '塞尔达攻略.md',
+    '王者荣耀-评分机制.md',
+    '金铲铲玩法.md'
 
-/* ── 网络源说明：
- *    目录列表 → data.jsdelivr.com 免认证 API（主）→ GitHub Contents API（备）
- *    文件正文 → cdn.jsdelivr.net（主）→ raw.githubusercontent.com（备）
- *    全程无需任何 token，不受 GitHub API 60 次/小时限制          ── */
-const CDN_BASE  = `https://cdn.jsdelivr.net/gh/${REPO_OWNER}/${REPO_NAME}@${BRANCH}/`;
-const TREE_URL  = `https://data.jsdelivr.com/v1/packages/gh/${REPO_OWNER}/${REPO_NAME}@${BRANCH}?structure=flat`;
-const GH_DIR    = folder => `https://api.github.com/repos/${encodeURIComponent(REPO_OWNER)}/${encodeURIComponent(REPO_NAME)}/contents/${enc(folder)}?ref=${encodeURIComponent(BRANCH)}`;
+  ],
+  '临时文档分享': [
+    // ↓ 临时文档同样加在这里
+    'temp.md'
+  ],
+};
+/* ═══════════════════ 配置结束，以下不用动 ═══════════════════ */
 
-const state = { cats:{}, view:'list', cur:null, curFile:null, curList:[] };
+const REPO_URL = 'https://github.com/vestjin/share';
+
+const state = { view:'list', cur:null, curFile:null };
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const enc = p => p.split('/').map(encodeURIComponent).join('/');
-const isConfiged = () => REPO_OWNER !== 'your-username' && REPO_NAME !== 'your-repo' && REPO_OWNER && REPO_NAME;
 
 /* ── 像素小人 logo ── */
 (function(){
@@ -245,78 +231,20 @@ const isConfiged = () => REPO_OWNER !== 'your-username' && REPO_NAME !== 'your-r
   $('#pixlogo').appendChild(i);
 })();
 
-/* ── Toast ── */
 let toastTimer;
 function toast(msg){
   const t = $('#toast'); t.textContent = msg; t.classList.add('show');
   clearTimeout(toastTimer); toastTimer = setTimeout(()=>t.classList.remove('show'), 1800);
 }
 
-/* ── 本地缓存 ── */
-const LS = {
-  get(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } },
-  set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} },
-  clearPrefix(p){ try{ Object.keys(localStorage).filter(k=>k.startsWith(p)).forEach(k=>localStorage.removeItem(k)); }catch(e){} }
-};
-
-/* ── 全仓库文件树（jsDelivr data API，5 分钟缓存，一次请求所有分类共用） ── */
-async function fetchTree(){
-  const key = `fn_tree:${BRANCH}`;
-  const cached = LS.get(key);
-  if(cached && Date.now()-cached.t < 5*60*1000) return cached.data;
-  const res = await fetch(TREE_URL);
-  if(!res.ok) throw new Error('CDN'+res.status);
-  const data = await res.json();
-  const tree = (data.files||[]).map(f=>({ path:f.name, size:f.size||0 }));
-  LS.set(key, { t:Date.now(), data:tree });
-  return tree;
-}
-
-/* ── 列出某分类下的 .md（jsDelivr 主，GitHub API 兜底） ── */
-async function fetchDir(folder){
-  try{
-    const tree = await fetchTree();
-    const files = tree
-      .filter(f=>f.path.startsWith(folder+'/') && /\.md$/i.test(f.path))
-      .sort((a,b)=>a.path.localeCompare(b.path,'zh'));
-    return { files, via:'jsdelivr' };
-  }catch(e){ /* jsDelivr 不可用 → 走 GitHub API 兜底 */ }
-  const key = `fn_ls:${BRANCH}:${folder}`;
-  const cached = LS.get(key);
-  if(cached && Date.now()-cached.t < 5*60*1000) return { files:cached.data, via:'ghcache' };
-  const res = await fetch(GH_DIR(folder), { headers:{ 'Accept':'application/vnd.github+json' } });
-  if(res.status === 403) throw new Error('RATE');
-  if(res.status === 404) return { files:[], via:'gh' };
-  if(!res.ok) throw new Error('HTTP'+res.status);
-  const data = await res.json();
-  const files = (Array.isArray(data)?data:[]).filter(f=>f.type==='file' && /\.md$/i.test(f.name))
-    .map(f=>({ path:f.path, size:f.size }))
-    .sort((a,b)=>a.path.localeCompare(b.path,'zh'));
-  LS.set(key, { t:Date.now(), data:files });
-  return { files, via:'gh' };
-}
-
-/* ── 读取 md 正文（jsDelivr CDN 主，raw.githubusercontent 兜底） ── */
+/* ── 同源读取 md（无跨域、无 API、无限额） ── */
 async function fetchRaw(path){
-  const key = `fn_raw:${BRANCH}:${path}`;
-  const cached = LS.get(key);
-  if(cached) return cached;
-  try{
-    const r = await fetch(CDN_BASE + enc(path));
-    if(r.ok){
-      const text = await r.text();
-      LS.set(key, text);
-      return text;
-    }
-  }catch(e){ /* 换源重试 */ }
-  const r = await fetch(`https://raw.githubusercontent.com/${encodeURIComponent(REPO_OWNER)}/${encodeURIComponent(REPO_NAME)}/${encodeURIComponent(BRANCH)}/${enc(path)}`);
-  if(!r.ok) throw new Error('HTTP'+r.status);
-  const text = await r.text();
-  LS.set(key, text);
-  return text;
+  const res = await fetch('./' + enc(path), { cache:'no-cache' });
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  return res.text();
 }
 
-/* ── Markdown 渲染：相对路径图片/链接重写（用 CDN 源） + 站内 .md 跳转 ── */
+/* ── Markdown 渲染：相对路径图片/链接重写 + 站内 .md 跳转 ── */
 function resolveRel(baseDir, rel){
   const parts = baseDir ? baseDir.split('/') : [];
   rel.split('/').forEach(p=>{ if(p==='..') parts.pop(); else if(p && p!=='.') parts.push(p); });
@@ -325,7 +253,7 @@ function resolveRel(baseDir, rel){
 function setupRenderer(){
   const r = new marked.Renderer();
   r.image = function(href, title, text){
-    const abs = /^(https?:|data:)/.test(href) ? href : CDN_BASE + enc(resolveRel(curDir(), href));
+    const abs = /^(https?:|data:)/.test(href) ? href : './' + enc(resolveRel(curDir(), href));
     return `<img src="${esc(abs)}" alt="${esc(text||'')}" ${title?`title="${esc(title)}"`:''} loading="lazy">`;
   };
   r.link = function(href, title, text){
@@ -334,7 +262,7 @@ function setupRenderer(){
       const target = resolveRel(curDir(), file);
       return `<a href="#/${enc(target)}"${anchor?` data-anchor="${esc(anchor)}"`:''}>${text}</a>`;
     }
-    const abs = /^(https?:|mailto:|#)/.test(href) ? href : CDN_BASE + enc(resolveRel(curDir(), href));
+    const abs = /^(https?:|mailto:|#)/.test(href) ? href : './' + enc(resolveRel(curDir(), href));
     return `<a href="${esc(abs)}" target="_blank" rel="noopener">${text}</a>`;
   };
   marked.setOptions({
@@ -352,43 +280,23 @@ function setupRenderer(){
 const curDir = () => { const i = (state.curFile||'').lastIndexOf('/'); return i>0 ? state.curFile.slice(0,i) : ''; };
 
 /* ── 工具 ── */
-const fmtSize = b => b < 1024 ? b+' B' : (b/1024).toFixed(1)+' KB';
-const estWords = b => Math.max(1, Math.round(b/3));
-const readMin = b => Math.max(1, Math.round(estWords(b)/400));
-const titleOf = (f, md) => { const m = md.match(/^#\s+(.+)\r?$/m); return m ? m[1].trim() : f.path.split('/').pop().replace(/\.md$/i,''); };
+const baseName = p => p.split('/').pop().replace(/\.md$/i,'');
 
 /* ── 初始化 ── */
-async function init(){
+function init(){
   $('#siteName').textContent = SITE_NAME;
   document.title = SITE_NAME;
-  if(!isConfiged()){ renderSidebar(); renderSetup(); return; }
   setupRenderer();
   renderSidebar();
-  CATEGORIES.forEach(c => loadCount(c));
-  if(!location.hash) location.hash = '#/'+enc(CATEGORIES[0].folder);
+  if(!location.hash) location.hash = '#/'+enc(Object.keys(FILES)[0]);
   else onRoute();
 }
-async function loadCount(cat){
-  const el = () => document.querySelector(`.cat[data-folder="${CSS.escape(cat.folder)}"] .cnt`);
-  try{
-    const { files } = await fetchDir(cat.folder);
-    state.cats[cat.folder] = files;
-    if(el()) el().innerHTML = `<b>${files.length}</b> 篇`;
-  }catch(e){
-    if(el()) el().textContent = e.message==='RATE' ? '限流' : '—';
-  }
-}
 function renderSidebar(){
-  const ok = isConfiged();
-  $('#brandSub').innerHTML = `FIELD NOTES // <b>${ok ? esc(REPO_OWNER+'/'+REPO_NAME) : '未配置'}</b>`;
-  $('#statusLine').innerHTML = ok
-    ? `<span class="dot"></span>CDN 已就绪 · jsDelivr 源`
-    : `<span class="dot warn"></span>待配置 · 编辑 index.html`;
-  $('#cats').innerHTML = CATEGORIES.map((c,i)=>`
-    <a class="cat${i===0?' on':''}" data-folder="${esc(c.folder)}" href="#/${enc(c.folder)}">
+  $('#cats').innerHTML = Object.keys(FILES).map((f,i)=>`
+    <a class="cat${i===0?' on':''}" data-folder="${esc(f)}" href="#/${enc(f)}">
       <span class="no">0${i+1}</span>
-      <span class="nm">${esc(c.name)}<small>/${esc(c.folder)} · ${esc(c.desc||'')}</small></span>
-      <span class="cnt"><b>…</b></span>
+      <span class="nm">${esc(f)}<small>/${esc(f)} · ${FILES[f].length} 篇</small></span>
+      <span class="cnt"><b>${FILES[f].length}</b></span>
     </a>`).join('');
 }
 function markCat(folder){
@@ -396,82 +304,62 @@ function markCat(folder){
 }
 
 /* ── 视图：文件清单 ── */
-async function showList(cat, keepFilter){
-  state.view = 'list'; state.cur = cat.folder; state.curFile = null;
-  markCat(cat.folder);
+function showList(folder, keepFilter){
+  state.view = 'list'; state.cur = folder; state.curFile = null;
+  markCat(folder);
   $('#progress').style.display='none';
+  const files = FILES[folder] || [];
   const v = $('#view');
   v.innerHTML = `
     <div class="view-head">
-      <h2>${esc(cat.name)}<span>_</span></h2>
-      <span class="folder">/${esc(cat.folder)} · ${BRANCH}</span>
+      <h2>${esc(folder)}<span>_</span></h2>
+      <span class="folder">/${esc(folder)} · ${BRANCH}</span>
     </div><hr class="head-rule">
     <div class="filter-row"><input id="filter" type="text" placeholder="过滤标题…（实时）" value="${esc(keepFilter||'')}"></div>
-    <div class="loading">LOADING</div>`;
-  try{
-    const { files } = await fetchDir(cat.folder);
-    state.cats[cat.folder] = files;
-    const cnt = document.querySelector(`.cat[data-folder="${CSS.escape(cat.folder)}"] .cnt`);
-    if(cnt) cnt.innerHTML = `<b>${files.length}</b> 篇`;
-    state.curList = files;
-    renderFileList(cat, files, keepFilter||'');
-    const inp = $('#filter');
-    inp.addEventListener('input', ()=>renderFileList(cat, files, inp.value));
-  }catch(e){
-    v.querySelector('.loading')?.remove();
-    v.insertAdjacentHTML('beforeend', `<div class="empty">加载失败：${esc(e.message)}<br>确认仓库为 Public、分支为 <code>${esc(BRANCH)}</code>；若刚创建仓库，jsDelivr 需几分钟收录。</div>`);
-  }
-}
-function renderFileList(cat, files, q){
-  const old = $('#flist'); if(old) old.remove();
-  const kw = q.trim().toLowerCase();
-  const shown = kw ? files.filter(f=>f.path.toLowerCase().includes(kw)) : files;
-  let html = `<div id="flist" class="flist">`;
-  if(!files.length){
-    html += `<div class="empty">「${esc(cat.folder)}」文件夹还没有文件，或尚未创建。<br>
-      打开手机 <span class="tip">GitHub App</span> → 进入本仓库 → 新建文件 <code>${esc(cat.folder)}/笔记名.md</code>，
-      <span class="tip">等 jsDelivr 同步（约几分钟）后回到本页即可出现</span>。</div>`;
-  }else if(!shown.length){
-    html += `<div class="empty">没有匹配「${esc(q)}」的文档。</div>`;
-  }else{
-    html += shown.map((f,i)=>`
-      <a class="fitem" href="#/${enc(f.path)}">
-        <span class="no">${String(i+1).padStart(2,'0')}</span>
-        <span class="fn">${esc(titleOf(f,''))}</span>
-        <span class="fp">${esc(f.path)}</span>
-        <span class="sz">${fmtSize(f.size)}</span>
-      </a>`).join('');
-  }
-  html += `</div>`;
-  $('.filter-row').insertAdjacentHTML('afterend', html);
+    <div id="flist" class="flist"></div>`;
+  const render = q => {
+    const kw = q.trim().toLowerCase();
+    const shown = kw ? files.filter(f=>f.toLowerCase().includes(kw)) : files;
+    $('#flist').innerHTML = !files.length
+      ? `<div class="empty">这个分类还没有文件。<br>
+          ① 在 GitHub App 里新建 <code>${esc(folder)}/笔记名.md</code>；<br>
+          ② 打开 <code>index.html</code>，在顶部 <code>FILES</code> 对应数组里加一行 <code>'笔记名.md'</code> 并提交；<br>
+          <span class="tip">刷新本页即可看到。</span></div>`
+      : (!shown.length
+        ? `<div class="empty">没有匹配「${esc(q)}」的文档。</div>`
+        : shown.map((f,i)=>`
+            <a class="fitem" href="#/${enc(folder)}/${enc(f)}">
+              <span class="no">${String(i+1).padStart(2,'0')}</span>
+              <span class="fn">${esc(baseName(f))}</span>
+            </a>`).join(''));
+  };
+  render(keepFilter||'');
+  $('#filter').addEventListener('input', e=>render(e.target.value));
 }
 
 /* ── 视图：文章 ── */
-async function showArticle(cat, filePath){
-  state.view = 'article'; state.cur = cat.folder; state.curFile = filePath;
-  markCat(cat.folder);
+async function showArticle(folder, fileName){
+  state.view = 'article'; state.cur = folder; state.curFile = folder + '/' + fileName;
+  markCat(folder);
   $('#progress').style.display='block';
-  let files = state.cats[cat.folder];
-  if(!files){ try{ files = (await fetchDir(cat.folder)).files; state.cats[cat.folder]=files; }catch(e){ files=[]; } }
-  state.curList = files;
-  const decoded = decodeURIComponent(filePath);
-  const idx = files.findIndex(f=>f.path===decoded);
-  const meta = idx>=0 ? files[idx] : { path:decoded, size:0 };
+  const filePath = folder + '/' + fileName;
+  const files = FILES[folder] || [];
+  const idx = files.indexOf(fileName);
   const v = $('#view');
-  const editUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/edit/${BRANCH}/${meta.path}`;
-  const rawUrl  = `https://github.com/${REPO_OWNER}/${REPO_NAME}/blob/${BRANCH}/${meta.path}`;
+  const editUrl = `${REPO_URL}/edit/${BRANCH}/${enc(filePath)}`;
+  const viewUrl = `${REPO_URL}/blob/${BRANCH}/${enc(filePath)}`;
   v.innerHTML = `
     <div class="art-top">
       <button class="ghostbtn" id="backBtn" type="button">‹ 返回列表</button>
       <div class="art-actions">
         <button class="ghostbtn" id="shareBtn" type="button">⧉ 复制链接</button>
-        <a class="ghostbtn" href="${esc(rawUrl)}" target="_blank" rel="noopener">Raw</a>
+        <a class="ghostbtn" href="${esc(viewUrl)}" target="_blank" rel="noopener">Raw</a>
         <a class="ghostbtn" href="${esc(editUrl)}" target="_blank" rel="noopener">✎ 在 GitHub 编辑</a>
       </div>
     </div>
     <article class="paper"><div class="loading">LOADING</div></article>
     <nav class="art-nav" id="artNav"></nav>`;
-  $('#backBtn').onclick = ()=>{ location.hash = '#/'+enc(cat.folder); };
+  $('#backBtn').onclick = ()=>{ location.hash = '#/'+enc(folder); };
   $('#shareBtn').onclick = async ()=>{
     try{ await navigator.clipboard.writeText(location.href); toast('链接已复制，快去分享吧'); }
     catch(e){
@@ -482,12 +370,14 @@ async function showArticle(cat, filePath){
     }
   };
   try{
-    const md = await fetchRaw(meta.path);
-    const title = titleOf(meta, md);
+    const md = await fetchRaw(filePath);
+    const m = md.match(/^#\s+(.+)\r?$/m);
+    const title = m ? m[1].trim() : baseName(fileName);
     const html = marked.parse(md);
+    const words = Math.max(1, Math.round(md.length/3));
     const paper = v.querySelector('.paper');
     paper.innerHTML = `
-      <div class="art-meta">${idx>=0?('NO.'+String(idx+1).padStart(2,'0')+' / '):''}<b>${esc(cat.name)}</b> · 约 ${estWords(meta.size)} 字 · 预计 ${readMin(meta.size)} 分钟 · ${fmtSize(meta.size)}</div>
+      <div class="art-meta">${idx>=0?('NO.'+String(idx+1).padStart(2,'0')+' / '):''}<b>${esc(folder)}</b> · 约 ${words} 字 · 预计 ${Math.max(1,Math.round(words/400))} 分钟</div>
       <h1>${esc(title)}</h1><hr class="art-title-rule">
       <div class="md-body">${html}</div>`;
     const anchorMeta = paper.querySelector('[data-anchor]');
@@ -495,49 +385,27 @@ async function showArticle(cat, filePath){
     if(files.length>1 && idx>=0){
       const prev = files[idx-1], next = files[idx+1];
       $('#artNav').innerHTML =
-        (prev?`<a href="#/${enc(prev.path)}"><b>‹ PREV</b><span>${esc(titleOf(prev,''))}</span></a>`:'<a style="visibility:hidden"></a>')+
-        (next?`<a class="nx" href="#/${enc(next.path)}"><b>NEXT ›</b><span>${esc(titleOf(next,''))}</span></a>`:'<a style="visibility:hidden"></a>');
+        (prev?`<a href="#/${enc(folder)}/${enc(prev)}"><b>‹ PREV</b><span>${esc(baseName(prev))}</span></a>`:'<a style="visibility:hidden"></a>')+
+        (next?`<a class="nx" href="#/${enc(folder)}/${enc(next)}"><b>NEXT ›</b><span>${esc(baseName(next))}</span></a>`:'<a style="visibility:hidden"></a>');
     }
     window.scrollTo({ top:0 });
   }catch(e){
     v.querySelector('.paper').innerHTML = `<div class="art-meta"><b>出错了</b></div><h1>无法加载这篇文档</h1><hr class="art-title-rule">
-      <p style="color:var(--paper-mut)">文件可能已被移动或删除，或刚提交还未同步到 CDN（${esc(e.message)}）。<br>确认 <code style="font-family:var(--mono)">${esc(meta.path)}</code> 存在后点「↻ 强制刷新缓存」。</p>`;
+      <p style="color:var(--paper-mut)">检查两件事：① 文件 <code style="font-family:var(--mono)">${esc(filePath)}</code> 是否真的已提交到仓库；② <code>index.html</code> 顶部 <code>FILES</code> 清单里写的文件名是否和实际一致（含大小写、扩展名）。<br>（${esc(e.message)}）</p>`;
   }
-}
-
-/* ── 配置引导 ── */
-function renderSetup(){
-  markCat('');
-  $('#view').innerHTML = `
-    <div class="view-head"><h2>欢迎<span>_</span>只需两步配置</h2></div><hr class="head-rule">
-    <div class="setup">
-      <p style="line-height:2;color:var(--mut)">这是一个「零维护」的 GitHub Pages 文档站：手机 GitHub App 里往文件夹丢 <code>.md</code>，网页自动收录、渲染、可分享。数据走 jsDelivr CDN，不受 GitHub API 限流影响。</p>
-      <ol>
-        <li>打开 <code>index.html</code>，把顶部 <code>REPO_OWNER</code> / <code>REPO_NAME</code> 改成你的用户名和仓库名，提交后稍等 Pages 部署完成。</li>
-        <li>在 GitHub App 里按下面的结构建文件夹、写 <code>.md</code>：</li>
-      </ol>
-      <pre>仓库根目录/
-├─ index.html
-├─ <b>游戏类文档/</b>      ← 游戏相关 .md 都放这里
-│   └─ 我的攻略笔记.md
-└─ <b>临时文档分享/</b>    ← 随手贴、临时分享的 .md</pre>
-      <p style="line-height:2;color:var(--mut)">注意：新提交的文件要等 jsDelivr 同步（通常几分钟），没出现就点左下角「↻ 强制刷新缓存」再等一会儿。加分类只需编辑 <code>CATEGORIES</code> 数组：<code>{ name:'显示名', folder:'文件夹名', desc:'说明' }</code>。</p>
-    </div>`;
 }
 
 /* ── 路由 ── */
 function onRoute(){
   const h = decodeURIComponent(location.hash.replace(/^#\/?/, ''));
   const seg = h.split('/').filter(Boolean);
-  if(!seg.length){ location.hash = '#/'+enc(CATEGORIES[0].folder); return; }
-  const cat = CATEGORIES.find(c=>c.folder===seg[0]);
-  if(!cat){
-    const first = CATEGORIES[0];
-    history.replaceState(null,'','#/'+enc(first.folder));
-    showList(first); return;
+  const folders = Object.keys(FILES);
+  if(!seg.length || !FILES[seg[0]]){
+    history.replaceState(null,'','#/'+enc(folders[0]));
+    showList(folders[0]); return;
   }
-  if(seg.length>1) showArticle(cat, seg.join('/'));
-  else showList(cat, '');
+  if(seg.length>1) showArticle(seg[0], seg.slice(1).join('/'));
+  else showList(seg[0], '');
 }
 
 /* ── 阅读进度条 ── */
@@ -548,12 +416,8 @@ window.addEventListener('scroll', ()=>{
   $('#progress').style.width = (p*100)+'%';
 }, { passive:true });
 
-/* ── 强制刷新缓存 ── */
-$('#refreshBtn').addEventListener('click', ()=>{
-  LS.clearPrefix('fn_tree:'); LS.clearPrefix('fn_ls:'); LS.clearPrefix('fn_raw:');
-  toast('本地缓存已清除');
-  setTimeout(()=>location.reload(), 500);
-});
+/* ── 刷新按钮（此方案其实无需清缓存，仅作刷新用） ── */
+$('#refreshBtn').addEventListener('click', ()=>location.reload());
 
 window.addEventListener('hashchange', onRoute);
 init();
