@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>手记档案馆</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23f0a832'/%3E%3Crect x='3' y='5' width='3' height='3' fill='%2316130f'/%3E%3Crect x='10' y='5' width='3' height='3' fill='%2316130f'/%3E%3Crect x='4' y='10' width='8' height='2' fill='%2316130f'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=ZCOOL+QingKe+HuangYou&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+<style>
+:root{
+  --bg:#16130f; --panel:#1e1913; --panel2:#241e16;
+  --line:#352c1f; --line2:#4a3d29;
+  --amber:#f0a832; --amber-deep:#b37816; --amber-dark:#6b4c14;
+  --ink:#e9e1d0; --mut:#8f8471; --dim:#5f584a;
+  --green:#4ade80; --paper:#f4efe3; --paper-ink:#2b241a; --paper-mut:#7d7362;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --disp:'ZCOOL QingKe HuangYou','PingFang SC','Microsoft YaHei',sans-serif;
+  --body:-apple-system,'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);letter-spacing:.02em;min-height:100vh}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--amber);color:#16130f}
+
+/* ── 顶部阅读进度条 ── */
+#progress{position:fixed;top:0;left:0;height:3px;width:0;background:var(--amber);z-index:99;transition:width .1s linear;display:none}
+
+/* ── 整体布局 ── */
+.wrap{display:grid;grid-template-columns:292px 1fr;max-width:1180px;margin:0 auto;min-height:100vh}
+#side{border-right:1px solid var(--line);padding:26px 0 20px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;overflow-y:auto}
+
+/* ── 站点头部 ── */
+.brand{padding:0 22px 20px;border-bottom:1px dashed var(--line2)}
+.brand-row{display:flex;align-items:center;gap:12px}
+#pixlogo{width:33px;height:24px;position:relative;flex:none}
+#pixlogo i{position:absolute;top:0;left:0;width:3px;height:3px;background:var(--amber)}
+.brand h1{font-family:var(--disp);font-size:24px;font-weight:400;line-height:1.1;letter-spacing:.06em}
+.brand p{margin-top:10px;font-family:var(--mono);font-size:11px;color:var(--mut)}
+.brand p b{color:var(--amber-deep);font-weight:400}
+
+/* ── 分类菜单（老游戏菜单风） ── */
+.cats-hint{padding:18px 22px 8px;font-family:var(--mono);font-size:10px;letter-spacing:.25em;color:var(--dim)}
+#cats{display:flex;flex-direction:column}
+.cat{display:flex;align-items:baseline;gap:10px;padding:13px 22px;border-left:3px solid transparent;position:relative;transition:background .12s,color .12s}
+.cat .no{font-family:var(--mono);font-size:11px;color:var(--dim);width:20px;flex:none;transition:color .12s}
+.cat .nm{font-family:var(--disp);font-size:19px;letter-spacing:.08em;flex:1;min-width:0}
+.cat .nm small{display:block;font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.05em;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cat .cnt{font-family:var(--mono);font-size:11px;color:var(--mut);flex:none}
+.cat .cnt b{color:var(--amber);font-weight:700;font-size:14px}
+.cat:hover{background:var(--amber);color:#16130f}
+.cat:hover .no,.cat:hover .nm small,.cat:hover .cnt,.cat:hover .cnt b{color:#16130f}
+.cat.on{border-left-color:var(--amber);background:var(--panel)}
+.cat.on::before{content:'▸';position:absolute;left:6px;top:14px;color:var(--amber);font-size:11px}
+.cat.on .nm{color:var(--amber)}
+.cat.on .cnt b{color:var(--amber)}
+
+/* ── 侧栏底部状态 ── */
+.side-foot{margin-top:auto;padding:18px 22px 0;border-top:1px dashed var(--line2);font-family:var(--mono);font-size:10.5px;color:var(--mut);line-height:2}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);margin-right:6px;vertical-align:1px}
+.dot.warn{background:var(--amber)} .dot.err{background:#e05555}
+#refreshBtn{background:none;border:1px solid var(--line2);color:var(--mut);font-family:var(--mono);font-size:10px;padding:4px 10px;cursor:pointer;margin-top:8px;letter-spacing:.1em;transition:.12s}
+#refreshBtn:hover{border-color:var(--amber);color:var(--amber)}
+
+/* ── 主内容区 ── */
+#main{padding:34px clamp(18px,4vw,48px) 60px;min-width:0}
+.view-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:6px}
+.view-head h2{font-family:var(--disp);font-size:clamp(26px,4vw,36px);font-weight:400;letter-spacing:.08em}
+.view-head h2 span{color:var(--amber)}
+.view-head .folder{font-family:var(--mono);font-size:11px;color:var(--mut)}
+.head-rule{border:none;border-top:1px solid var(--line2);margin:12px 0 4px;position:relative}
+.head-rule::after{content:'';position:absolute;left:0;top:-4px;width:52px;height:7px;background:var(--amber)}
+
+/* ── 搜索过滤 ── */
+.filter-row{margin:16px 0 6px}
+#filter{width:min(320px,100%);background:transparent;border:none;border-bottom:1px solid var(--line2);color:var(--ink);font-family:var(--mono);font-size:13px;padding:8px 2px;outline:none;transition:border-color .15s}
+#filter:focus{border-bottom-color:var(--amber)}
+#filter::placeholder{color:var(--dim)}
+
+/* ── 文件清单 ── */
+.flist{margin-top:8px}
+.fitem{display:flex;align-items:baseline;gap:12px;padding:13px 10px;border-bottom:1px solid var(--line);transition:background .12s,color .12s;cursor:pointer}
+.fitem .no{font-family:var(--mono);font-size:11px;color:var(--amber-deep);width:26px;flex:none}
+.fitem .fn{flex:1;min-width:0;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fitem .fp{font-family:var(--mono);font-size:10px;color:var(--dim);flex:none;max-width:34%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fitem .sz{font-family:var(--mono);font-size:10.5px;color:var(--mut);flex:none}
+.fitem:hover{background:var(--amber);color:#16130f}
+.fitem:hover .no,.fitem:hover .fp,.fitem:hover .sz{color:#16130f}
+
+/* ── 空态 / 提示 ── */
+.empty{margin-top:28px;border:1px dashed var(--line2);padding:30px 26px;color:var(--mut);font-size:14px;line-height:2}
+.empty code{font-family:var(--mono);color:var(--amber);background:var(--panel);padding:2px 7px;font-size:12.5px}
+.empty .tip{color:var(--amber-deep)}
+
+/* ── 文章：翻开的纸面 ── */
+.art-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+.ghostbtn{background:none;border:1px solid var(--line2);color:var(--ink);font-family:var(--mono);font-size:12px;padding:7px 14px;cursor:pointer;letter-spacing:.05em;transition:.12s}
+.ghostbtn:hover{border-color:var(--amber);color:var(--amber)}
+.art-actions{display:flex;gap:8px;flex-wrap:wrap}
+.paper{position:relative;background:var(--paper);color:var(--paper-ink);padding:clamp(26px,5vw,56px);line-height:1.9;font-size:16.5px}
+.paper::before,.paper::after{content:'';position:absolute;width:16px;height:16px;pointer-events:none}
+.paper::before{top:8px;left:8px;border-top:2px solid var(--amber);border-left:2px solid var(--amber)}
+.paper::after{bottom:8px;right:8px;border-bottom:2px solid var(--amber);border-right:2px solid var(--amber)}
+.art-meta{font-family:var(--mono);font-size:11px;color:var(--paper-mut);letter-spacing:.12em;margin-bottom:14px}
+.art-meta b{color:var(--amber-deep);font-weight:700}
+.paper h1{font-family:var(--disp);font-size:clamp(24px,4.5vw,34px);font-weight:400;line-height:1.35;letter-spacing:.04em;margin-bottom:6px}
+.art-title-rule{border:none;border-top:2px solid var(--paper-ink);position:relative;margin:14px 0 30px}
+.art-title-rule::after{content:'';position:absolute;left:0;top:3px;width:100%;border-top:1px solid var(--paper-ink)}
+
+/* 文章内 markdown 样式（纸面排版） */
+.md-body h2{font-family:var(--disp);font-size:21px;font-weight:400;margin:34px 0 12px;padding-left:14px;border-left:4px solid var(--amber-deep);letter-spacing:.05em}
+.md-body h3{font-size:17.5px;margin:26px 0 10px;color:#4a3a20}
+.md-body p{margin:12px 0}
+.md-body ul,.md-body ol{padding-left:1.5em;margin:12px 0}
+.md-body li{margin:5px 0}
+.md-body li::marker{color:var(--amber-deep)}
+.md-body blockquote{border-left:3px solid var(--amber-deep);background:#ece5d5;margin:16px 0;padding:10px 18px;color:#5c5240}
+.md-body code{font-family:var(--mono);font-size:.85em;background:#e7dfcd;padding:2px 6px;border-radius:2px;color:#8a4b12}
+.md-body pre{background:#efe8d8;border:1px solid #ddd2ba;padding:14px 16px;overflow-x:auto;margin:16px 0;line-height:1.6}
+.md-body pre code{background:none;padding:0;color:#3a3225;font-size:13.5px}
+.md-body img{max-width:100%;display:block;margin:18px auto;border:1px solid #d8cdb4}
+.md-body table{border-collapse:collapse;width:100%;margin:16px 0;font-size:14px}
+.md-body th,.md-body td{border:1px solid #cfc3a6;padding:7px 12px;text-align:left}
+.md-body th{background:#eae2ce;font-family:var(--mono);font-size:12.5px}
+.md-body hr{border:none;border-top:1px dashed #c3b796;margin:26px 0}
+.md-body a{color:#a05e10;border-bottom:1px solid #d3a95f}
+.md-body a:hover{color:#7a4408}
+/* 代码高亮（手写浅纸配色） */
+.hljs-comment,.hljs-quote{color:#96896f;font-style:italic}
+.hljs-keyword,.hljs-selector-tag,.hljs-literal,.hljs-name{color:#a1417c}
+.hljs-string,.hljs-attr,.hljs-template-variable{color:#7a5c12}
+.hljs-number,.hljs-symbol,.hljs-bullet{color:#3f6fa8}
+.hljs-title,.hljs-function,.hljs-built_in{color:#8a4b12}
+.hljs-section,.hljs-attribute{color:#2f7a52}
+
+/* ── 上一篇/下一篇 ── */
+.art-nav{display:flex;justify-content:space-between;gap:12px;margin-top:22px}
+.art-nav a{flex:1;border:1px solid var(--line2);padding:13px 16px;font-size:13px;color:var(--mut);transition:.12s;min-width:0}
+.art-nav a:hover{border-color:var(--amber);color:var(--amber)}
+.art-nav a b{display:block;font-family:var(--mono);font-size:10px;color:var(--dim);letter-spacing:.2em;margin-bottom:5px}
+.art-nav a:hover b{color:var(--amber)}
+.art-nav .nx{text-align:right}
+.art-nav a span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ── 配置引导面板 ── */
+.setup{border:1px solid var(--amber-deep);padding:28px clamp(18px,4vw,40px);margin-top:20px}
+.setup h2{font-family:var(--disp);font-weight:400;font-size:24px;color:var(--amber);letter-spacing:.06em;margin-bottom:14px}
+.setup ol{margin:14px 0 14px 1.4em;line-height:2.1;font-size:14.5px}
+.setup code,.setup pre{font-family:var(--mono)}
+.setup code{color:var(--amber)}
+.setup pre{background:var(--panel);border:1px solid var(--line);padding:16px;font-size:12px;line-height:1.8;overflow-x:auto;color:var(--mut);margin:10px 0}
+.setup pre b{color:var(--amber);font-weight:400}
+
+/* ── Toast ── */
+#toast{position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(20px);background:#0d0b08;border:1px solid var(--amber);color:var(--amber);font-family:var(--mono);font-size:12.5px;padding:11px 22px;opacity:0;pointer-events:none;transition:.25s;z-index:100;letter-spacing:.05em}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── 加载指示 ── */
+.loading{font-family:var(--mono);font-size:13px;color:var(--mut);padding:40px 0;letter-spacing:.15em}
+.loading::after{content:'▮';color:var(--amber);animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* ── 移动端 ── */
+@media (max-width:860px){
+  .wrap{grid-template-columns:1fr}
+  #side{position:static;height:auto;border-right:none;border-bottom:1px solid var(--line);padding-bottom:14px}
+  .brand{padding-bottom:14px}
+  .cats-hint{padding:12px 18px 6px}
+  #cats{flex-direction:row;overflow-x:auto;padding:0 12px;gap:2px;scrollbar-width:none}
+  #cats::-webkit-scrollbar{display:none}
+  .cat{border-left:none;border-bottom:3px solid transparent;padding:10px 14px;flex:none}
+  .cat .nm{font-size:16px}
+  .cat .nm small,.cat .no{display:none}
+  .cat.on::before{left:4px;top:50%;transform:translateY(-50%)}
+  #main{padding:24px 16px 60px}
+  .fitem .fp{display:none}
+  .paper{font-size:15.5px;padding:22px 18px}
+}
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+
+<div class="wrap">
+  <!-- ══ 侧栏：站点名 + 分类菜单 ══ -->
+  <aside id="side">
+    <div class="brand">
+      <div class="brand-row">
+        <div id="pixlogo" aria-hidden="true"></div>
+        <h1 id="siteName">手记档案馆</h1>
+      </div>
+      <p id="brandSub">FIELD NOTES // <b>loading…</b></p>
+    </div>
+    <div class="cats-hint">── 分类目录 ──</div>
+    <nav id="cats"></nav>
+    <div class="side-foot">
+      <div id="statusLine"><span class="dot warn"></span>初始化中…</div>
+      <div style="color:var(--dim)">手机 GitHub App 丢入 .md<br>页面自动收录</div>
+      <button id="refreshBtn" type="button">↻ 强制刷新缓存</button>
+    </div>
+  </aside>
+
+  <!-- ══ 内容区 ══ -->
+  <main id="main"><div id="view"><div class="loading">LOADING</div></div></main>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+ * ① 填写你的仓库信息（仓库需为 Public）
+ *    例如 https://github.com/xiaoming/notes
+ *    → REPO_OWNER:'xiaoming'  REPO_NAME:'notes'
+ * ═══════════════════════════════════════════════════════════ */
+const REPO_OWNER = 'vestjin';   // ← 改成你的 GitHub 用户名
+const REPO_NAME  = 'share';       // ← 改成你的仓库名
+const BRANCH     = 'main';            // ← 分支名，一般不用动
+
+/* ═══════════════════════════════════════════════════════════
+ * ② 分类配置：可随意增删、改名
+ *    folder = 仓库里存放 .md 文件的文件夹名
+ *    只要文件夹存在（哪怕还没有文件），页面就会自动读取
+ * ═══════════════════════════════════════════════════════════ */
+const SITE_NAME = '手记档案馆';       // ← 站点名称，随意改
+const CATEGORIES = [
+  { name:'游戏', folder:'games', desc:'攻略 · 存档 · 碎碎念' },
+  { name:'灵感', folder:'ideas', desc:'暂定分类，随你改名' },
+  { name:'日志', folder:'logs',  desc:'暂定分类，随你改名' },
+];
+/* ═══════════════════════════════ 配置结束 ═══════════════════ */
+
+const state = { cats:{}, view:'list', cur:null, curFile:null, curList:[], rawBase:'' };
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const enc = p => p.split('/').map(encodeURIComponent).join('/');
+const isConfiged = () => REPO_OWNER !== 'your-username' && REPO_NAME !== 'your-repo' && REPO_OWNER && REPO_NAME;
+
+/* ── 像素小人 logo（JS 生成点阵，避免手写一长串 shadow） ── */
+  const art = [
+    '..#.....#..',
+    '...#...#...',
+    '..#######..',
+    '.##.###.##.',
+    '###########',
+    '#.#######.#',
+    '#.#.....#.#',
+    '...##.##...',
+  ];
+  const shadows = [];
+  art.forEach((row,y)=>[...row].forEach((c,x)=>{ if(c==='#') shadows.push(`${x*3}px ${y*3}px 0 0 var(--amber)`); }));
+  const i = document.createElement('i');
+  i.style.boxShadow = shadows.join(',');
+  i.style.background = 'transparent';
+  $('#pixlogo').appendChild(i);
+})();
+
+/* ── Toast ── */
+let toastTimer;
+function toast(msg){
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+/* ── 带缓存的 GitHub API / raw 请求 ── */
+const LS = {
+  get(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} },
+  clearPrefix(p){ try{ Object.keys(localStorage).filter(k=>k.startsWith(p)).forEach(k=>localStorage.removeItem(k)); }catch(e){} }
+};
+async function fetchDir(folder){
+  const key = `fn_ls:${BRANCH}:${folder}`;
+  const cached = LS.get(key);
+  if(cached && Date.now()-cached.t < 5*60*1000) return { files:cached.data, cached:true };
+  const url = `https://api.github.com/repos/${encodeURIComponent(REPO_OWNER)}/${encodeURIComponent(REPO_NAME)}/contents/${enc(folder)}?ref=${encodeURIComponent(BRANCH)}`;
+  const res = await fetch(url, { headers:{ 'Accept':'application/vnd.github+json' } });
+  if(res.status === 403) throw new Error('RATE');
+  if(res.status === 404) return { files:[], cached:false, missing:true };
+  if(!res.ok) throw new Error('HTTP'+res.status);
+  const data = await res.json();
+  const files = (Array.isArray(data)?data:[]).filter(f=>f.type==='file' && /\.md$/i.test(f.name))
+    .map(f=>({ name:f.name, path:f.path, size:f.size }))
+    .sort((a,b)=>a.name.localeCompare(b.name,'zh'));
+  LS.set(key, { t:Date.now(), data:files });
+  return { files, cached:false };
+}
+async function fetchRaw(path){
+  const key = `fn_raw:${BRANCH}:${path}`;
+  const cached = LS.get(key);
+  if(cached) return cached;
+  const res = await fetch(`https://raw.githubusercontent.com/${encodeURIComponent(REPO_OWNER)}/${encodeURIComponent(REPO_NAME)}/${encodeURIComponent(BRANCH)}/${enc(path)}`);
+  if(!res.ok) throw new Error('HTTP'+res.status);
+  const text = await res.text();
+  LS.set(key, text);
+  return text;
+}
+
+/* ── Markdown 渲染：相对路径图片/链接重写 + 站内 .md 跳转 ── */
+const rawBase = () => `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}/`;
+function resolveRel(baseDir, rel){
+  const parts = baseDir ? baseDir.split('/') : [];
+  rel.split('/').forEach(p=>{ if(p==='..') parts.pop(); else if(p && p!=='.') parts.push(p); });
+  return parts.join('/');
+}
+function setupRenderer(){
+  const r = new marked.Renderer();
+  r.image = function(href, title, text){
+    const abs = /^(https?:|data:)/.test(href) ? href : rawBase()+enc(resolveRel(curDir(), href));
+    return `<img src="${esc(abs)}" alt="${esc(text||'')}" ${title?`title="${esc(title)}"`:''} loading="lazy">`;
+  };
+  r.link = function(href, title, text){
+    const [file, anchor] = href.split('#');
+    if(!/^(https?:|mailto:|#)/.test(href) && /\.md$/i.test(file)){
+      const target = resolveRel(curDir(), file);
+      return `<a href="#/${enc(target)}"${anchor?` data-anchor="${esc(anchor)}"`:''}>${text}</a>`;
+    }
+    const abs = /^(https?:|mailto:|#)/.test(href) ? href : rawBase()+enc(resolveRel(curDir(), href));
+    return `<a href="${esc(abs)}" target="_blank" rel="noopener">${text}</a>`;
+  };
+  marked.setOptions({
+    renderer:r, gfm:true, breaks:true,
+    highlight:(code, lang)=>{
+      try{
+        if(typeof hljs !== 'undefined'){
+          return lang && hljs.getLanguage(lang) ? hljs.highlight(code,{language:lang}).value : hljs.highlightAuto(code).value;
+        }
+      }catch(e){}
+      return code;
+    }
+  });
+}
+const curDir = () => { const i = (state.curFile||'').lastIndexOf('/'); return i>0 ? state.curFile.slice(0,i) : ''; };
+
+/* ── 工具 ── */
+const fmtSize = b => b < 1024 ? b+' B' : (b/1024).toFixed(1)+' KB';
+const estWords = b => Math.max(1, Math.round(b/3));
+const readMin = b => Math.max(1, Math.round(estWords(b)/400));
+const titleOf = (f, md) => { const m = md.match(/^#\s+(.+)\r?$/m); return m ? m[1].trim() : f.name.replace(/\.md$/i,''); };
+
+/* ── 初始化：先并行拉所有分类，更新计数与状态 ── */
+async function init(){
+  $('#siteName').textContent = SITE_NAME;
+  document.title = SITE_NAME;
+  if(!isConfiged()){ renderSidebar(); renderSetup(); return; }
+  setupRenderer();
+  renderSidebar();
+  CATEGORIES.forEach(c => loadCount(c));
+  if(!location.hash) location.hash = '#/'+CATEGORIES[0].folder;
+  else onRoute();
+}
+async function loadCount(cat){
+  const el = () => document.querySelector(`.cat[data-folder="${cat.folder}"] .cnt`);
+  try{
+    const { files } = await fetchDir(cat.folder);
+    state.cats[cat.folder] = files;
+    if(el()) el().innerHTML = `<b>${files.length}</b> 篇`;
+  }catch(e){
+    if(el()) el().textContent = e.message==='RATE' ? '限流' : '—';
+  }
+}
+function renderSidebar(){
+  const ok = isConfiged();
+  $('#brandSub').innerHTML = `FIELD NOTES // <b>${ok ? esc(REPO_OWNER+'/'+REPO_NAME) : '未配置'}</b>`;
+  $('#statusLine').innerHTML = ok
+    ? `<span class="dot"></span>已连接 ${esc(REPO_OWNER)}/${esc(REPO_NAME)}`
+    : `<span class="dot warn"></span>待配置 · 编辑 index.html`;
+  $('#cats').innerHTML = CATEGORIES.map((c,i)=>`
+    <a class="cat${i===0?' on':''}" data-folder="${c.folder}" href="#/${enc(c.folder)}">
+      <span class="no">0${i+1}</span>
+      <span class="nm">${esc(c.name)}<small>/${esc(c.folder)} · ${esc(c.desc||'')}</small></span>
+      <span class="cnt"><b>…</b></span>
+    </a>`).join('');
+}
+function markCat(folder){
+  document.querySelectorAll('.cat').forEach(a=>a.classList.toggle('on', a.dataset.folder===folder));
+}
+
+/* ── 视图：文件清单 ── */
+async function showList(cat, keepFilter){
+  state.view = 'list'; state.cur = cat.folder; state.curFile = null;
+  markCat(cat.folder);
+  $('#progress').style.display='none';
+  const v = $('#view');
+  v.innerHTML = `
+    <div class="view-head">
+      <h2>${esc(cat.name)}<span>_</span>手记</h2>
+      <span class="folder">/${esc(cat.folder)} · ${BRANCH}</span>
+    </div><hr class="head-rule">
+    <div class="filter-row"><input id="filter" type="text" placeholder="过滤标题…（实时）" value="${esc(keepFilter||'')}"></div>
+    <div class="loading">LOADING</div>`;
+  const flistSlot = () => v.querySelector('.filter-row');
+  try{
+    const { files } = await fetchDir(cat.folder);
+    state.cats[cat.folder] = files;
+    const cnt = document.querySelector(`.cat[data-folder="${cat.folder}"] .cnt`);
+    if(cnt) cnt.innerHTML = `<b>${files.length}</b> 篇`;
+    state.curList = files;
+    flistSlot().insertAdjacentHTML('afterend', '');
+    renderFileList(cat, files, keepFilter||'');
+    const inp = $('#filter');
+    inp.addEventListener('input', ()=>renderFileList(cat, files, inp.value));
+  }catch(e){
+    v.querySelector('.loading')?.remove();
+    if(e.message==='RATE'){
+      v.insertAdjacentHTML('beforeend', `<div class="empty"><span class="tip">GitHub API 请求达到限流（每小时 60 次 / IP）。</span><br>稍后再来，或点左侧「↻ 强制刷新缓存」重试。</div>`);
+    }else{
+      v.insertAdjacentHTML('beforeend', `<div class="empty">加载失败：${esc(e.message)}<br>确认仓库为 Public 且分支为 <code>${esc(BRANCH)}</code>。</div>`);
+    }
+  }
+}
+function renderFileList(cat, files, q){
+  const old = $('#flist'); if(old) old.remove();
+  const kw = q.trim().toLowerCase();
+  const shown = kw ? files.filter(f=>f.name.toLowerCase().includes(kw)) : files;
+  let html = `<div id="flist" class="flist">`;
+  if(!files.length){
+    html += `<div class="empty">这个分类还没有文件。<br>
+      打开手机 <span class="tip">GitHub App</span> → 进入本仓库 → 在根目录新建文件夹 <code>${esc(cat.folder)}</code> →
+      上传或新建 <code>.md</code> 文件，<span class="tip">回到本页即可自动出现</span>，无需改任何代码。</div>`;
+  }else if(!shown.length){
+    html += `<div class="empty">没有匹配「${esc(q)}」的手记。</div>`;
+  }else{
+    html += shown.map((f,i)=>`
+      <a class="fitem" href="#/${enc(f.path)}">
+        <span class="no">${String(i+1).padStart(2,'0')}</span>
+        <span class="fn">${esc(titleOf(f,''))}</span>
+        <span class="fp">${esc(f.path)}</span>
+        <span class="sz">${fmtSize(f.size)}</span>
+      </a>`).join('');
+  }
+  html += `</div>`;
+  $('.filter-row').insertAdjacentHTML('afterend', html);
+}
+
+/* ── 视图：文章 ── */
+async function showArticle(cat, filePath){
+  state.view = 'article'; state.cur = cat.folder; state.curFile = filePath;
+  markCat(cat.folder);
+  $('#progress').style.display='block';
+  let files = state.cats[cat.folder];
+  if(!files){ try{ files = (await fetchDir(cat.folder)).files; state.cats[cat.folder]=files; }catch(e){ files=[]; } }
+  state.curList = files;
+  const idx = files.findIndex(f=>f.path===filePath || decodeURIComponent(filePath)===f.path);
+  const meta = idx>=0 ? files[idx] : { name:filePath.split('/').pop(), path:filePath, size:0 };
+  const v = $('#view');
+  const editUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/edit/${BRANCH}/${meta.path}`;
+  const rawUrl  = `https://github.com/${REPO_OWNER}/${REPO_NAME}/blob/${BRANCH}/${meta.path}`;
+  v.innerHTML = `
+    <div class="art-top">
+      <button class="ghostbtn" id="backBtn" type="button">‹ 返回列表</button>
+      <div class="art-actions">
+        <button class="ghostbtn" id="shareBtn" type="button">⧉ 复制链接</button>
+        <a class="ghostbtn" href="${esc(rawUrl)}" target="_blank" rel="noopener">Raw</a>
+        <a class="ghostbtn" href="${esc(editUrl)}" target="_blank" rel="noopener">✎ 在 GitHub 编辑</a>
+      </div>
+    </div>
+    <article class="paper"><div class="loading">LOADING</div></article>
+    <nav class="art-nav" id="artNav"></nav>`;
+  $('#backBtn').onclick = ()=>{ location.hash = '#/'+enc(cat.folder); };
+  $('#shareBtn').onclick = async ()=>{
+    try{ await navigator.clipboard.writeText(location.href); toast('链接已复制，快去分享吧'); }
+    catch(e){
+      const ta = document.createElement('textarea'); ta.value = location.href;
+      document.body.appendChild(ta); ta.select();
+      try{ document.execCommand('copy'); toast('链接已复制，快去分享吧'); }catch(_){ toast('复制失败，请手动复制地址栏'); }
+      ta.remove();
+    }
+  };
+  try{
+    const md = await fetchRaw(meta.path);
+    const title = titleOf(meta, md);
+    const html = marked.parse(md);
+    const paper = v.querySelector('.paper');
+    paper.innerHTML = `
+      <div class="art-meta">${idx>=0?('NO.'+String(idx+1).padStart(2,'0')+' / '):''}<b>${esc(cat.name)}</b> · 约 ${estWords(meta.size)} 字 · 预计 ${readMin(meta.size)} 分钟 · ${fmtSize(meta.size)}</div>
+      <h1>${esc(title)}</h1><hr class="art-title-rule">
+      <div class="md-body">${html}</div>`;
+    const anchorMeta = paper.querySelector('[data-anchor]');
+    if(anchorMeta){ const a = anchorMeta.dataset.anchor; anchorMeta.removeAttribute('data-anchor'); requestAnimationFrame(()=>{ const t=document.getElementById(a)||document.getElementsByName(a)[0]; if(t) t.scrollIntoView(); }); }
+    /* 上一篇 / 下一篇 */
+    if(files.length>1 && idx>=0){
+      const prev = files[idx-1], next = files[idx+1];
+      $('#artNav').innerHTML =
+        (prev?`<a href="#/${enc(prev.path)}"><b>‹ PREV</b><span>${esc(titleOf(prev,''))}</span></a>`:'<a style="visibility:hidden"></a>')+
+        (next?`<a class="nx" href="#/${enc(next.path)}"><b>NEXT ›</b><span>${esc(titleOf(next,''))}</span></a>`:'<a style="visibility:hidden"></a>');
+    }
+    window.scrollTo({ top:0 });
+  }catch(e){
+    v.querySelector('.paper').innerHTML = `<div class="art-meta"><b>出错了</b></div><h1>无法加载这篇手记</h1><hr class="art-title-rule">
+      <p style="color:var(--paper-mut)">文件可能已被移动或删除（${esc(e.message)}）。<br>去 GitHub 确认 <code style="font-family:var(--mono)">${esc(meta.path)}</code> 是否存在。</p>`;
+  }
+}
+
+/* ── 配置引导 ── */
+function renderSetup(){
+  markCat('');
+  $('#view').innerHTML = `
+    <div class="view-head"><h2>欢迎<span>_</span>只需两步配置</h2></div><hr class="head-rule">
+    <div class="setup">
+      <p style="line-height:2;color:var(--mut)">这是一个「零维护」的 GitHub Pages 手记站：手机 GitHub App 里往文件夹丢 <code>.md</code>，网页自动收录、渲染、可分享。</p>
+      <ol>
+        <li>用任意编辑器打开 <code>index.html</code>，把顶部 <code>REPO_OWNER</code> / <code>REPO_NAME</code> 改成你的用户名和仓库名，提交后稍等 Pages 部署完成。</li>
+        <li>在 GitHub App 里按下面的结构建文件夹、写 <code>.md</code>，页面即自动展示：</li>
+      </ol>
+      <pre>仓库根目录/
+├─ index.html
+├─ <b>games/</b>          ← 游戏分类（.md 都放这里）
+│   └─ 我的攻略笔记.md
+├─ <b>ideas/</b>         ← 灵感（名称可在配置里改）
+└─ <b>logs/</b>          ← 日志（名称可在配置里改）</pre>
+      <p style="line-height:2;color:var(--mut)">增删分类只需编辑 <code>CATEGORIES</code> 数组：<code>{ name:'显示名', folder:'文件夹名', desc:'一句话说明' }</code>。文件夹不存在时页面会显示引导，不会报错。</p>
+    </div>`;
+}
+
+/* ── 路由：#/分类  或  #/分类/xxx.md ── */
+function onRoute(){
+  const h = decodeURIComponent(location.hash.replace(/^#\/?/, ''));
+  const seg = h.split('/').filter(Boolean);
+  if(!seg.length){ location.hash = '#/'+CATEGORIES[0].folder; return; }
+  const cat = CATEGORIES.find(c=>c.folder===seg[0]);
+  if(!cat){
+    const first = CATEGORIES[0];
+    history.replaceState(null,'','#/'+enc(first.folder));
+    showList(first); return;
+  }
+  if(seg.length>1) showArticle(cat, seg.join('/'));
+  else showList(cat, '');
+}
+
+/* ── 阅读进度条 ── */
+window.addEventListener('scroll', ()=>{
+  if(state.view!=='article') return;
+  const h = document.documentElement;
+  const p = h.scrollTop / Math.max(1, h.scrollHeight - h.clientHeight);
+  $('#progress').style.width = (p*100)+'%';
+}, { passive:true });
+
+/* ── 强制刷新缓存 ── */
+$('#refreshBtn').addEventListener('click', ()=>{
+  LS.clearPrefix('fn_ls:'); LS.clearPrefix('fn_raw:');
+  toast('缓存已清除，重新加载');
+  setTimeout(()=>location.reload(), 500);
+});
+
+window.addEventListener('hashchange', onRoute);
+init();
+</script>
+</body>
+</html>
