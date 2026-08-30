@@ -26,14 +26,11 @@ body{background:var(--bg);color:var(--ink);font-family:var(--body);letter-spacin
 a{color:inherit;text-decoration:none}
 ::selection{background:var(--amber);color:#16130f}
 
-/* ── 顶部阅读进度条 ── */
 #progress{position:fixed;top:0;left:0;height:3px;width:0;background:var(--amber);z-index:99;transition:width .1s linear;display:none}
 
-/* ── 整体布局 ── */
 .wrap{display:grid;grid-template-columns:292px 1fr;max-width:1180px;margin:0 auto;min-height:100vh}
 #side{border-right:1px solid var(--line);padding:26px 0 20px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;overflow-y:auto}
 
-/* ── 站点头部 ── */
 .brand{padding:0 22px 20px;border-bottom:1px dashed var(--line2)}
 .brand-row{display:flex;align-items:center;gap:12px}
 #pixlogo{width:33px;height:24px;position:relative;flex:none}
@@ -42,7 +39,6 @@ a{color:inherit;text-decoration:none}
 .brand p{margin-top:10px;font-family:var(--mono);font-size:11px;color:var(--mut)}
 .brand p b{color:var(--amber-deep);font-weight:400}
 
-/* ── 分类菜单（老游戏菜单风） ── */
 .cats-hint{padding:18px 22px 8px;font-family:var(--mono);font-size:10px;letter-spacing:.25em;color:var(--dim)}
 #cats{display:flex;flex-direction:column}
 .cat{display:flex;align-items:baseline;gap:10px;padding:13px 22px;border-left:3px solid transparent;position:relative;transition:background .12s,color .12s}
@@ -58,14 +54,12 @@ a{color:inherit;text-decoration:none}
 .cat.on .nm{color:var(--amber)}
 .cat.on .cnt b{color:var(--amber)}
 
-/* ── 侧栏底部状态 ── */
 .side-foot{margin-top:auto;padding:18px 22px 0;border-top:1px dashed var(--line2);font-family:var(--mono);font-size:10.5px;color:var(--mut);line-height:2}
 .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);margin-right:6px;vertical-align:1px}
 .dot.warn{background:var(--amber)} .dot.err{background:#e05555}
 #refreshBtn{background:none;border:1px solid var(--line2);color:var(--mut);font-family:var(--mono);font-size:10px;padding:4px 10px;cursor:pointer;margin-top:8px;letter-spacing:.1em;transition:.12s}
 #refreshBtn:hover{border-color:var(--amber);color:var(--amber)}
 
-/* ── 主内容区 ── */
 #main{padding:34px clamp(18px,4vw,48px) 60px;min-width:0}
 .view-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:6px}
 .view-head h2{font-family:var(--disp);font-size:clamp(26px,4vw,36px);font-weight:400;letter-spacing:.08em}
@@ -74,13 +68,11 @@ a{color:inherit;text-decoration:none}
 .head-rule{border:none;border-top:1px solid var(--line2);margin:12px 0 4px;position:relative}
 .head-rule::after{content:'';position:absolute;left:0;top:-4px;width:52px;height:7px;background:var(--amber)}
 
-/* ── 搜索过滤 ── */
 .filter-row{margin:16px 0 6px}
 #filter{width:min(320px,100%);background:transparent;border:none;border-bottom:1px solid var(--line2);color:var(--ink);font-family:var(--mono);font-size:13px;padding:8px 2px;outline:none;transition:border-color .15s}
 #filter:focus{border-bottom-color:var(--amber)}
 #filter::placeholder{color:var(--dim)}
 
-/* ── 文件清单 ── */
 .flist{margin-top:8px}
 .fitem{display:flex;align-items:baseline;gap:12px;padding:13px 10px;border-bottom:1px solid var(--line);transition:background .12s,color .12s;cursor:pointer}
 .fitem .no{font-family:var(--mono);font-size:11px;color:var(--amber-deep);width:26px;flex:none}
@@ -90,12 +82,10 @@ a{color:inherit;text-decoration:none}
 .fitem:hover{background:var(--amber);color:#16130f}
 .fitem:hover .no,.fitem:hover .fp,.fitem:hover .sz{color:#16130f}
 
-/* ── 空态 / 提示 ── */
 .empty{margin-top:28px;border:1px dashed var(--line2);padding:30px 26px;color:var(--mut);font-size:14px;line-height:2}
 .empty code{font-family:var(--mono);color:var(--amber);background:var(--panel);padding:2px 7px;font-size:12.5px}
 .empty .tip{color:var(--amber-deep)}
 
-/* ── 文章：翻开的纸面 ── */
 .art-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:20px}
 .ghostbtn{background:none;border:1px solid var(--line2);color:var(--ink);font-family:var(--mono);font-size:12px;padding:7px 14px;cursor:pointer;letter-spacing:.05em;transition:.12s}
 .ghostbtn:hover{border-color:var(--amber);color:var(--amber)}
@@ -110,7 +100,6 @@ a{color:inherit;text-decoration:none}
 .art-title-rule{border:none;border-top:2px solid var(--paper-ink);position:relative;margin:14px 0 30px}
 .art-title-rule::after{content:'';position:absolute;left:0;top:3px;width:100%;border-top:1px solid var(--paper-ink)}
 
-/* 文章内 markdown 样式（纸面排版） */
 .md-body h2{font-family:var(--disp);font-size:21px;font-weight:400;margin:34px 0 12px;padding-left:14px;border-left:4px solid var(--amber-deep);letter-spacing:.05em}
 .md-body h3{font-size:17.5px;margin:26px 0 10px;color:#4a3a20}
 .md-body p{margin:12px 0}
@@ -128,7 +117,6 @@ a{color:inherit;text-decoration:none}
 .md-body hr{border:none;border-top:1px dashed #c3b796;margin:26px 0}
 .md-body a{color:#a05e10;border-bottom:1px solid #d3a95f}
 .md-body a:hover{color:#7a4408}
-/* 代码高亮（手写浅纸配色） */
 .hljs-comment,.hljs-quote{color:#96896f;font-style:italic}
 .hljs-keyword,.hljs-selector-tag,.hljs-literal,.hljs-name{color:#a1417c}
 .hljs-string,.hljs-attr,.hljs-template-variable{color:#7a5c12}
@@ -136,7 +124,6 @@ a{color:inherit;text-decoration:none}
 .hljs-title,.hljs-function,.hljs-built_in{color:#8a4b12}
 .hljs-section,.hljs-attribute{color:#2f7a52}
 
-/* ── 上一篇/下一篇 ── */
 .art-nav{display:flex;justify-content:space-between;gap:12px;margin-top:22px}
 .art-nav a{flex:1;border:1px solid var(--line2);padding:13px 16px;font-size:13px;color:var(--mut);transition:.12s;min-width:0}
 .art-nav a:hover{border-color:var(--amber);color:var(--amber)}
@@ -145,7 +132,6 @@ a{color:inherit;text-decoration:none}
 .art-nav .nx{text-align:right}
 .art-nav a span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-/* ── 配置引导面板 ── */
 .setup{border:1px solid var(--amber-deep);padding:28px clamp(18px,4vw,40px);margin-top:20px}
 .setup h2{font-family:var(--disp);font-weight:400;font-size:24px;color:var(--amber);letter-spacing:.06em;margin-bottom:14px}
 .setup ol{margin:14px 0 14px 1.4em;line-height:2.1;font-size:14.5px}
@@ -154,16 +140,13 @@ a{color:inherit;text-decoration:none}
 .setup pre{background:var(--panel);border:1px solid var(--line);padding:16px;font-size:12px;line-height:1.8;overflow-x:auto;color:var(--mut);margin:10px 0}
 .setup pre b{color:var(--amber);font-weight:400}
 
-/* ── Toast ── */
 #toast{position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(20px);background:#0d0b08;border:1px solid var(--amber);color:var(--amber);font-family:var(--mono);font-size:12.5px;padding:11px 22px;opacity:0;pointer-events:none;transition:.25s;z-index:100;letter-spacing:.05em}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-/* ── 加载指示 ── */
 .loading{font-family:var(--mono);font-size:13px;color:var(--mut);padding:40px 0;letter-spacing:.15em}
 .loading::after{content:'▮';color:var(--amber);animation:blink 1s steps(1) infinite}
 @keyframes blink{50%{opacity:0}}
 
-/* ── 移动端 ── */
 @media (max-width:860px){
   .wrap{grid-template-columns:1fr}
   #side{position:static;height:auto;border-right:none;border-bottom:1px solid var(--line);padding-bottom:14px}
@@ -186,7 +169,6 @@ a{color:inherit;text-decoration:none}
 <div id="progress"></div>
 
 <div class="wrap">
-  <!-- ══ 侧栏：站点名 + 分类菜单 ══ -->
   <aside id="side">
     <div class="brand">
       <div class="brand-row">
@@ -204,7 +186,6 @@ a{color:inherit;text-decoration:none}
     </div>
   </aside>
 
-  <!-- ══ 内容区 ══ -->
   <main id="main"><div id="view"><div class="loading">LOADING</div></div></main>
 </div>
 
@@ -221,15 +202,14 @@ const REPO_NAME  = 'share';       // ← 改成你的仓库名
 const BRANCH     = 'main';            // ← 分支名，一般不用动
 
 /* ═══════════════════════════════════════════════════════════
- * ② 分类配置：可随意增删、改名
- *    folder = 仓库里存放 .md 文件的文件夹名
- *    只要文件夹存在（哪怕还没有文件），页面就会自动读取
+ * ② 分类配置（已按你的两个文件夹写好）
+ *    folder = 仓库里的文件夹名（中文名可直接用）
+ *    想加第三个分类？照格式再添一行即可
  * ═══════════════════════════════════════════════════════════ */
 const SITE_NAME = '手记档案馆';       // ← 站点名称，随意改
 const CATEGORIES = [
-  { name:'游戏', folder:'games', desc:'攻略 · 存档 · 碎碎念' },
-  { name:'灵感', folder:'ideas', desc:'暂定分类，随你改名' },
-  { name:'日志', folder:'logs',  desc:'暂定分类，随你改名' },
+  { name:'游戏类文档',   folder:'游戏类文档',   desc:'攻略 · 存档 · 碎碎念' },
+  { name:'临时文档分享', folder:'临时文档分享', desc:'随手贴 · 用完即弃' },
 ];
 /* ═══════════════════════════════ 配置结束 ═══════════════════ */
 
@@ -239,7 +219,8 @@ const esc = s => String(s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'
 const enc = p => p.split('/').map(encodeURIComponent).join('/');
 const isConfiged = () => REPO_OWNER !== 'your-username' && REPO_NAME !== 'your-repo' && REPO_OWNER && REPO_NAME;
 
-/* ── 像素小人 logo（JS 生成点阵，避免手写一长串 shadow） ── */
+/* ── 像素小人 logo ── */
+(function(){
   const art = [
     '..#.....#..',
     '...#...#...',
@@ -340,7 +321,7 @@ const estWords = b => Math.max(1, Math.round(b/3));
 const readMin = b => Math.max(1, Math.round(estWords(b)/400));
 const titleOf = (f, md) => { const m = md.match(/^#\s+(.+)\r?$/m); return m ? m[1].trim() : f.name.replace(/\.md$/i,''); };
 
-/* ── 初始化：先并行拉所有分类，更新计数与状态 ── */
+/* ── 初始化 ── */
 async function init(){
   $('#siteName').textContent = SITE_NAME;
   document.title = SITE_NAME;
@@ -386,7 +367,7 @@ async function showList(cat, keepFilter){
   const v = $('#view');
   v.innerHTML = `
     <div class="view-head">
-      <h2>${esc(cat.name)}<span>_</span>手记</h2>
+      <h2>${esc(cat.name)}<span>_</span></h2>
       <span class="folder">/${esc(cat.folder)} · ${BRANCH}</span>
     </div><hr class="head-rule">
     <div class="filter-row"><input id="filter" type="text" placeholder="过滤标题…（实时）" value="${esc(keepFilter||'')}"></div>
@@ -417,11 +398,11 @@ function renderFileList(cat, files, q){
   const shown = kw ? files.filter(f=>f.name.toLowerCase().includes(kw)) : files;
   let html = `<div id="flist" class="flist">`;
   if(!files.length){
-    html += `<div class="empty">这个分类还没有文件。<br>
+    html += `<div class="empty">「${esc(cat.folder)}」文件夹还没有文件，或尚未创建。<br>
       打开手机 <span class="tip">GitHub App</span> → 进入本仓库 → 在根目录新建文件夹 <code>${esc(cat.folder)}</code> →
-      上传或新建 <code>.md</code> 文件，<span class="tip">回到本页即可自动出现</span>，无需改任何代码。</div>`;
+      上传或新建 <code>.md</code> 文件，<span class="tip">回到本页即可自动出现</span>。</div>`;
   }else if(!shown.length){
-    html += `<div class="empty">没有匹配「${esc(q)}」的手记。</div>`;
+    html += `<div class="empty">没有匹配「${esc(q)}」的文档。</div>`;
   }else{
     html += shown.map((f,i)=>`
       <a class="fitem" href="#/${enc(f.path)}">
@@ -480,7 +461,6 @@ async function showArticle(cat, filePath){
       <div class="md-body">${html}</div>`;
     const anchorMeta = paper.querySelector('[data-anchor]');
     if(anchorMeta){ const a = anchorMeta.dataset.anchor; anchorMeta.removeAttribute('data-anchor'); requestAnimationFrame(()=>{ const t=document.getElementById(a)||document.getElementsByName(a)[0]; if(t) t.scrollIntoView(); }); }
-    /* 上一篇 / 下一篇 */
     if(files.length>1 && idx>=0){
       const prev = files[idx-1], next = files[idx+1];
       $('#artNav').innerHTML =
@@ -489,7 +469,7 @@ async function showArticle(cat, filePath){
     }
     window.scrollTo({ top:0 });
   }catch(e){
-    v.querySelector('.paper').innerHTML = `<div class="art-meta"><b>出错了</b></div><h1>无法加载这篇手记</h1><hr class="art-title-rule">
+    v.querySelector('.paper').innerHTML = `<div class="art-meta"><b>出错了</b></div><h1>无法加载这篇文档</h1><hr class="art-title-rule">
       <p style="color:var(--paper-mut)">文件可能已被移动或删除（${esc(e.message)}）。<br>去 GitHub 确认 <code style="font-family:var(--mono)">${esc(meta.path)}</code> 是否存在。</p>`;
   }
 }
@@ -500,22 +480,21 @@ function renderSetup(){
   $('#view').innerHTML = `
     <div class="view-head"><h2>欢迎<span>_</span>只需两步配置</h2></div><hr class="head-rule">
     <div class="setup">
-      <p style="line-height:2;color:var(--mut)">这是一个「零维护」的 GitHub Pages 手记站：手机 GitHub App 里往文件夹丢 <code>.md</code>，网页自动收录、渲染、可分享。</p>
+      <p style="line-height:2;color:var(--mut)">这是一个「零维护」的 GitHub Pages 文档站：手机 GitHub App 里往文件夹丢 <code>.md</code>，网页自动收录、渲染、可分享。</p>
       <ol>
         <li>用任意编辑器打开 <code>index.html</code>，把顶部 <code>REPO_OWNER</code> / <code>REPO_NAME</code> 改成你的用户名和仓库名，提交后稍等 Pages 部署完成。</li>
         <li>在 GitHub App 里按下面的结构建文件夹、写 <code>.md</code>，页面即自动展示：</li>
       </ol>
       <pre>仓库根目录/
 ├─ index.html
-├─ <b>games/</b>          ← 游戏分类（.md 都放这里）
+├─ <b>游戏类文档/</b>      ← 游戏相关 .md 都放这里
 │   └─ 我的攻略笔记.md
-├─ <b>ideas/</b>         ← 灵感（名称可在配置里改）
-└─ <b>logs/</b>          ← 日志（名称可在配置里改）</pre>
-      <p style="line-height:2;color:var(--mut)">增删分类只需编辑 <code>CATEGORIES</code> 数组：<code>{ name:'显示名', folder:'文件夹名', desc:'一句话说明' }</code>。文件夹不存在时页面会显示引导，不会报错。</p>
+└─ <b>临时文档分享/</b>    ← 随手贴、临时分享的 .md</pre>
+      <p style="line-height:2;color:var(--mut)">以后想加分类，编辑 <code>CATEGORIES</code> 数组加一行即可：<code>{ name:'显示名', folder:'文件夹名', desc:'一句话说明' }</code>。文件夹不存在时页面会显示引导，不会报错。</p>
     </div>`;
 }
 
-/* ── 路由：#/分类  或  #/分类/xxx.md ── */
+/* ── 路由 ── */
 function onRoute(){
   const h = decodeURIComponent(location.hash.replace(/^#\/?/, ''));
   const seg = h.split('/').filter(Boolean);
