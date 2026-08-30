@@ -181,7 +181,7 @@ a{color:inherit;text-decoration:none}
     <nav id="cats"></nav>
     <div class="side-foot">
       <div id="statusLine"><span class="dot warn"></span>初始化中…</div>
-      <div style="color:var(--dim)">手机 GitHub App 丢入 .md<br>页面自动收录</div>
+      <div style="color:var(--dim)">jsDelivr CDN · 免 API 限额<br>新文件需几分钟同步</div>
       <button id="refreshBtn" type="button">↻ 强制刷新缓存</button>
     </div>
   </aside>
@@ -202,9 +202,7 @@ const REPO_NAME  = 'share';       // ← 改成你的仓库名
 const BRANCH     = 'main';            // ← 分支名，一般不用动
 
 /* ═══════════════════════════════════════════════════════════
- * ② 分类配置（已按你的两个文件夹写好）
- *    folder = 仓库里的文件夹名（中文名可直接用）
- *    想加第三个分类？照格式再添一行即可
+ * ② 分类配置：folder = 仓库里的文件夹名（中文可用）
  * ═══════════════════════════════════════════════════════════ */
 const SITE_NAME = '手记档案馆';       // ← 站点名称，随意改
 const CATEGORIES = [
@@ -213,7 +211,15 @@ const CATEGORIES = [
 ];
 /* ═══════════════════════════════ 配置结束 ═══════════════════ */
 
-const state = { cats:{}, view:'list', cur:null, curFile:null, curList:[], rawBase:'' };
+/* ── 网络源说明：
+ *    目录列表 → data.jsdelivr.com 免认证 API（主）→ GitHub Contents API（备）
+ *    文件正文 → cdn.jsdelivr.net（主）→ raw.githubusercontent.com（备）
+ *    全程无需任何 token，不受 GitHub API 60 次/小时限制          ── */
+const CDN_BASE  = `https://cdn.jsdelivr.net/gh/${REPO_OWNER}/${REPO_NAME}@${BRANCH}/`;
+const TREE_URL  = `https://data.jsdelivr.com/v1/packages/gh/${REPO_OWNER}/${REPO_NAME}@${BRANCH}?structure=flat`;
+const GH_DIR    = folder => `https://api.github.com/repos/${encodeURIComponent(REPO_OWNER)}/${encodeURIComponent(REPO_NAME)}/contents/${enc(folder)}?ref=${encodeURIComponent(BRANCH)}`;
+
+const state = { cats:{}, view:'list', cur:null, curFile:null, curList:[] };
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const enc = p => p.split('/').map(encodeURIComponent).join('/');
@@ -246,41 +252,71 @@ function toast(msg){
   clearTimeout(toastTimer); toastTimer = setTimeout(()=>t.classList.remove('show'), 1800);
 }
 
-/* ── 带缓存的 GitHub API / raw 请求 ── */
+/* ── 本地缓存 ── */
 const LS = {
   get(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } },
   set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} },
   clearPrefix(p){ try{ Object.keys(localStorage).filter(k=>k.startsWith(p)).forEach(k=>localStorage.removeItem(k)); }catch(e){} }
 };
+
+/* ── 全仓库文件树（jsDelivr data API，5 分钟缓存，一次请求所有分类共用） ── */
+async function fetchTree(){
+  const key = `fn_tree:${BRANCH}`;
+  const cached = LS.get(key);
+  if(cached && Date.now()-cached.t < 5*60*1000) return cached.data;
+  const res = await fetch(TREE_URL);
+  if(!res.ok) throw new Error('CDN'+res.status);
+  const data = await res.json();
+  const tree = (data.files||[]).map(f=>({ path:f.name, size:f.size||0 }));
+  LS.set(key, { t:Date.now(), data:tree });
+  return tree;
+}
+
+/* ── 列出某分类下的 .md（jsDelivr 主，GitHub API 兜底） ── */
 async function fetchDir(folder){
+  try{
+    const tree = await fetchTree();
+    const files = tree
+      .filter(f=>f.path.startsWith(folder+'/') && /\.md$/i.test(f.path))
+      .sort((a,b)=>a.path.localeCompare(b.path,'zh'));
+    return { files, via:'jsdelivr' };
+  }catch(e){ /* jsDelivr 不可用 → 走 GitHub API 兜底 */ }
   const key = `fn_ls:${BRANCH}:${folder}`;
   const cached = LS.get(key);
-  if(cached && Date.now()-cached.t < 5*60*1000) return { files:cached.data, cached:true };
-  const url = `https://api.github.com/repos/${encodeURIComponent(REPO_OWNER)}/${encodeURIComponent(REPO_NAME)}/contents/${enc(folder)}?ref=${encodeURIComponent(BRANCH)}`;
-  const res = await fetch(url, { headers:{ 'Accept':'application/vnd.github+json' } });
+  if(cached && Date.now()-cached.t < 5*60*1000) return { files:cached.data, via:'ghcache' };
+  const res = await fetch(GH_DIR(folder), { headers:{ 'Accept':'application/vnd.github+json' } });
   if(res.status === 403) throw new Error('RATE');
-  if(res.status === 404) return { files:[], cached:false, missing:true };
+  if(res.status === 404) return { files:[], via:'gh' };
   if(!res.ok) throw new Error('HTTP'+res.status);
   const data = await res.json();
   const files = (Array.isArray(data)?data:[]).filter(f=>f.type==='file' && /\.md$/i.test(f.name))
-    .map(f=>({ name:f.name, path:f.path, size:f.size }))
-    .sort((a,b)=>a.name.localeCompare(b.name,'zh'));
+    .map(f=>({ path:f.path, size:f.size }))
+    .sort((a,b)=>a.path.localeCompare(b.path,'zh'));
   LS.set(key, { t:Date.now(), data:files });
-  return { files, cached:false };
+  return { files, via:'gh' };
 }
+
+/* ── 读取 md 正文（jsDelivr CDN 主，raw.githubusercontent 兜底） ── */
 async function fetchRaw(path){
   const key = `fn_raw:${BRANCH}:${path}`;
   const cached = LS.get(key);
   if(cached) return cached;
-  const res = await fetch(`https://raw.githubusercontent.com/${encodeURIComponent(REPO_OWNER)}/${encodeURIComponent(REPO_NAME)}/${encodeURIComponent(BRANCH)}/${enc(path)}`);
-  if(!res.ok) throw new Error('HTTP'+res.status);
-  const text = await res.text();
+  try{
+    const r = await fetch(CDN_BASE + enc(path));
+    if(r.ok){
+      const text = await r.text();
+      LS.set(key, text);
+      return text;
+    }
+  }catch(e){ /* 换源重试 */ }
+  const r = await fetch(`https://raw.githubusercontent.com/${encodeURIComponent(REPO_OWNER)}/${encodeURIComponent(REPO_NAME)}/${encodeURIComponent(BRANCH)}/${enc(path)}`);
+  if(!r.ok) throw new Error('HTTP'+r.status);
+  const text = await r.text();
   LS.set(key, text);
   return text;
 }
 
-/* ── Markdown 渲染：相对路径图片/链接重写 + 站内 .md 跳转 ── */
-const rawBase = () => `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}/`;
+/* ── Markdown 渲染：相对路径图片/链接重写（用 CDN 源） + 站内 .md 跳转 ── */
 function resolveRel(baseDir, rel){
   const parts = baseDir ? baseDir.split('/') : [];
   rel.split('/').forEach(p=>{ if(p==='..') parts.pop(); else if(p && p!=='.') parts.push(p); });
@@ -289,7 +325,7 @@ function resolveRel(baseDir, rel){
 function setupRenderer(){
   const r = new marked.Renderer();
   r.image = function(href, title, text){
-    const abs = /^(https?:|data:)/.test(href) ? href : rawBase()+enc(resolveRel(curDir(), href));
+    const abs = /^(https?:|data:)/.test(href) ? href : CDN_BASE + enc(resolveRel(curDir(), href));
     return `<img src="${esc(abs)}" alt="${esc(text||'')}" ${title?`title="${esc(title)}"`:''} loading="lazy">`;
   };
   r.link = function(href, title, text){
@@ -298,7 +334,7 @@ function setupRenderer(){
       const target = resolveRel(curDir(), file);
       return `<a href="#/${enc(target)}"${anchor?` data-anchor="${esc(anchor)}"`:''}>${text}</a>`;
     }
-    const abs = /^(https?:|mailto:|#)/.test(href) ? href : rawBase()+enc(resolveRel(curDir(), href));
+    const abs = /^(https?:|mailto:|#)/.test(href) ? href : CDN_BASE + enc(resolveRel(curDir(), href));
     return `<a href="${esc(abs)}" target="_blank" rel="noopener">${text}</a>`;
   };
   marked.setOptions({
@@ -319,7 +355,7 @@ const curDir = () => { const i = (state.curFile||'').lastIndexOf('/'); return i>
 const fmtSize = b => b < 1024 ? b+' B' : (b/1024).toFixed(1)+' KB';
 const estWords = b => Math.max(1, Math.round(b/3));
 const readMin = b => Math.max(1, Math.round(estWords(b)/400));
-const titleOf = (f, md) => { const m = md.match(/^#\s+(.+)\r?$/m); return m ? m[1].trim() : f.name.replace(/\.md$/i,''); };
+const titleOf = (f, md) => { const m = md.match(/^#\s+(.+)\r?$/m); return m ? m[1].trim() : f.path.split('/').pop().replace(/\.md$/i,''); };
 
 /* ── 初始化 ── */
 async function init(){
@@ -329,11 +365,11 @@ async function init(){
   setupRenderer();
   renderSidebar();
   CATEGORIES.forEach(c => loadCount(c));
-  if(!location.hash) location.hash = '#/'+CATEGORIES[0].folder;
+  if(!location.hash) location.hash = '#/'+enc(CATEGORIES[0].folder);
   else onRoute();
 }
 async function loadCount(cat){
-  const el = () => document.querySelector(`.cat[data-folder="${cat.folder}"] .cnt`);
+  const el = () => document.querySelector(`.cat[data-folder="${CSS.escape(cat.folder)}"] .cnt`);
   try{
     const { files } = await fetchDir(cat.folder);
     state.cats[cat.folder] = files;
@@ -346,10 +382,10 @@ function renderSidebar(){
   const ok = isConfiged();
   $('#brandSub').innerHTML = `FIELD NOTES // <b>${ok ? esc(REPO_OWNER+'/'+REPO_NAME) : '未配置'}</b>`;
   $('#statusLine').innerHTML = ok
-    ? `<span class="dot"></span>已连接 ${esc(REPO_OWNER)}/${esc(REPO_NAME)}`
+    ? `<span class="dot"></span>CDN 已就绪 · jsDelivr 源`
     : `<span class="dot warn"></span>待配置 · 编辑 index.html`;
   $('#cats').innerHTML = CATEGORIES.map((c,i)=>`
-    <a class="cat${i===0?' on':''}" data-folder="${c.folder}" href="#/${enc(c.folder)}">
+    <a class="cat${i===0?' on':''}" data-folder="${esc(c.folder)}" href="#/${enc(c.folder)}">
       <span class="no">0${i+1}</span>
       <span class="nm">${esc(c.name)}<small>/${esc(c.folder)} · ${esc(c.desc||'')}</small></span>
       <span class="cnt"><b>…</b></span>
@@ -372,35 +408,29 @@ async function showList(cat, keepFilter){
     </div><hr class="head-rule">
     <div class="filter-row"><input id="filter" type="text" placeholder="过滤标题…（实时）" value="${esc(keepFilter||'')}"></div>
     <div class="loading">LOADING</div>`;
-  const flistSlot = () => v.querySelector('.filter-row');
   try{
     const { files } = await fetchDir(cat.folder);
     state.cats[cat.folder] = files;
-    const cnt = document.querySelector(`.cat[data-folder="${cat.folder}"] .cnt`);
+    const cnt = document.querySelector(`.cat[data-folder="${CSS.escape(cat.folder)}"] .cnt`);
     if(cnt) cnt.innerHTML = `<b>${files.length}</b> 篇`;
     state.curList = files;
-    flistSlot().insertAdjacentHTML('afterend', '');
     renderFileList(cat, files, keepFilter||'');
     const inp = $('#filter');
     inp.addEventListener('input', ()=>renderFileList(cat, files, inp.value));
   }catch(e){
     v.querySelector('.loading')?.remove();
-    if(e.message==='RATE'){
-      v.insertAdjacentHTML('beforeend', `<div class="empty"><span class="tip">GitHub API 请求达到限流（每小时 60 次 / IP）。</span><br>稍后再来，或点左侧「↻ 强制刷新缓存」重试。</div>`);
-    }else{
-      v.insertAdjacentHTML('beforeend', `<div class="empty">加载失败：${esc(e.message)}<br>确认仓库为 Public 且分支为 <code>${esc(BRANCH)}</code>。</div>`);
-    }
+    v.insertAdjacentHTML('beforeend', `<div class="empty">加载失败：${esc(e.message)}<br>确认仓库为 Public、分支为 <code>${esc(BRANCH)}</code>；若刚创建仓库，jsDelivr 需几分钟收录。</div>`);
   }
 }
 function renderFileList(cat, files, q){
   const old = $('#flist'); if(old) old.remove();
   const kw = q.trim().toLowerCase();
-  const shown = kw ? files.filter(f=>f.name.toLowerCase().includes(kw)) : files;
+  const shown = kw ? files.filter(f=>f.path.toLowerCase().includes(kw)) : files;
   let html = `<div id="flist" class="flist">`;
   if(!files.length){
     html += `<div class="empty">「${esc(cat.folder)}」文件夹还没有文件，或尚未创建。<br>
-      打开手机 <span class="tip">GitHub App</span> → 进入本仓库 → 在根目录新建文件夹 <code>${esc(cat.folder)}</code> →
-      上传或新建 <code>.md</code> 文件，<span class="tip">回到本页即可自动出现</span>。</div>`;
+      打开手机 <span class="tip">GitHub App</span> → 进入本仓库 → 新建文件 <code>${esc(cat.folder)}/笔记名.md</code>，
+      <span class="tip">等 jsDelivr 同步（约几分钟）后回到本页即可出现</span>。</div>`;
   }else if(!shown.length){
     html += `<div class="empty">没有匹配「${esc(q)}」的文档。</div>`;
   }else{
@@ -424,8 +454,9 @@ async function showArticle(cat, filePath){
   let files = state.cats[cat.folder];
   if(!files){ try{ files = (await fetchDir(cat.folder)).files; state.cats[cat.folder]=files; }catch(e){ files=[]; } }
   state.curList = files;
-  const idx = files.findIndex(f=>f.path===filePath || decodeURIComponent(filePath)===f.path);
-  const meta = idx>=0 ? files[idx] : { name:filePath.split('/').pop(), path:filePath, size:0 };
+  const decoded = decodeURIComponent(filePath);
+  const idx = files.findIndex(f=>f.path===decoded);
+  const meta = idx>=0 ? files[idx] : { path:decoded, size:0 };
   const v = $('#view');
   const editUrl = `https://github.com/${REPO_OWNER}/${REPO_NAME}/edit/${BRANCH}/${meta.path}`;
   const rawUrl  = `https://github.com/${REPO_OWNER}/${REPO_NAME}/blob/${BRANCH}/${meta.path}`;
@@ -470,7 +501,7 @@ async function showArticle(cat, filePath){
     window.scrollTo({ top:0 });
   }catch(e){
     v.querySelector('.paper').innerHTML = `<div class="art-meta"><b>出错了</b></div><h1>无法加载这篇文档</h1><hr class="art-title-rule">
-      <p style="color:var(--paper-mut)">文件可能已被移动或删除（${esc(e.message)}）。<br>去 GitHub 确认 <code style="font-family:var(--mono)">${esc(meta.path)}</code> 是否存在。</p>`;
+      <p style="color:var(--paper-mut)">文件可能已被移动或删除，或刚提交还未同步到 CDN（${esc(e.message)}）。<br>确认 <code style="font-family:var(--mono)">${esc(meta.path)}</code> 存在后点「↻ 强制刷新缓存」。</p>`;
   }
 }
 
@@ -480,17 +511,17 @@ function renderSetup(){
   $('#view').innerHTML = `
     <div class="view-head"><h2>欢迎<span>_</span>只需两步配置</h2></div><hr class="head-rule">
     <div class="setup">
-      <p style="line-height:2;color:var(--mut)">这是一个「零维护」的 GitHub Pages 文档站：手机 GitHub App 里往文件夹丢 <code>.md</code>，网页自动收录、渲染、可分享。</p>
+      <p style="line-height:2;color:var(--mut)">这是一个「零维护」的 GitHub Pages 文档站：手机 GitHub App 里往文件夹丢 <code>.md</code>，网页自动收录、渲染、可分享。数据走 jsDelivr CDN，不受 GitHub API 限流影响。</p>
       <ol>
-        <li>用任意编辑器打开 <code>index.html</code>，把顶部 <code>REPO_OWNER</code> / <code>REPO_NAME</code> 改成你的用户名和仓库名，提交后稍等 Pages 部署完成。</li>
-        <li>在 GitHub App 里按下面的结构建文件夹、写 <code>.md</code>，页面即自动展示：</li>
+        <li>打开 <code>index.html</code>，把顶部 <code>REPO_OWNER</code> / <code>REPO_NAME</code> 改成你的用户名和仓库名，提交后稍等 Pages 部署完成。</li>
+        <li>在 GitHub App 里按下面的结构建文件夹、写 <code>.md</code>：</li>
       </ol>
       <pre>仓库根目录/
 ├─ index.html
 ├─ <b>游戏类文档/</b>      ← 游戏相关 .md 都放这里
 │   └─ 我的攻略笔记.md
 └─ <b>临时文档分享/</b>    ← 随手贴、临时分享的 .md</pre>
-      <p style="line-height:2;color:var(--mut)">以后想加分类，编辑 <code>CATEGORIES</code> 数组加一行即可：<code>{ name:'显示名', folder:'文件夹名', desc:'一句话说明' }</code>。文件夹不存在时页面会显示引导，不会报错。</p>
+      <p style="line-height:2;color:var(--mut)">注意：新提交的文件要等 jsDelivr 同步（通常几分钟），没出现就点左下角「↻ 强制刷新缓存」再等一会儿。加分类只需编辑 <code>CATEGORIES</code> 数组：<code>{ name:'显示名', folder:'文件夹名', desc:'说明' }</code>。</p>
     </div>`;
 }
 
@@ -498,7 +529,7 @@ function renderSetup(){
 function onRoute(){
   const h = decodeURIComponent(location.hash.replace(/^#\/?/, ''));
   const seg = h.split('/').filter(Boolean);
-  if(!seg.length){ location.hash = '#/'+CATEGORIES[0].folder; return; }
+  if(!seg.length){ location.hash = '#/'+enc(CATEGORIES[0].folder); return; }
   const cat = CATEGORIES.find(c=>c.folder===seg[0]);
   if(!cat){
     const first = CATEGORIES[0];
@@ -519,8 +550,8 @@ window.addEventListener('scroll', ()=>{
 
 /* ── 强制刷新缓存 ── */
 $('#refreshBtn').addEventListener('click', ()=>{
-  LS.clearPrefix('fn_ls:'); LS.clearPrefix('fn_raw:');
-  toast('缓存已清除，重新加载');
+  LS.clearPrefix('fn_tree:'); LS.clearPrefix('fn_ls:'); LS.clearPrefix('fn_raw:');
+  toast('本地缓存已清除');
   setTimeout(()=>location.reload(), 500);
 });
 
