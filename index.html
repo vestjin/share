@@ -28,7 +28,7 @@ a{color:inherit;text-decoration:none}
 
 #progress{position:fixed;top:0;left:0;height:3px;width:0;background:var(--amber);z-index:99;transition:width .1s linear;display:none}
 
-.wrap{display:grid;grid-template-columns:292px 1fr;max-width:1180px;margin:0 auto;min-height:100vh}
+.wrap{display:grid;grid-template-columns:292px 1fr;max-width:1320px;margin:0 auto;min-height:100vh}
 #side{border-right:1px solid var(--line);padding:26px 0 20px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;overflow-y:auto}
 
 .brand{padding:0 22px 20px;border-bottom:1px dashed var(--line2)}
@@ -60,7 +60,7 @@ a{color:inherit;text-decoration:none}
 #refreshBtn{background:none;border:1px solid var(--line2);color:var(--mut);font-family:var(--mono);font-size:10px;padding:4px 10px;cursor:pointer;margin-top:8px;letter-spacing:.1em;transition:.12s}
 #refreshBtn:hover{border-color:var(--amber);color:var(--amber)}
 
-#main{padding:34px clamp(18px,4vw,48px) 60px;min-width:0}
+#main{padding:34px clamp(18px,4vw,44px) 60px;min-width:0}
 .view-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:6px}
 .view-head h2{font-family:var(--disp);font-size:clamp(26px,4vw,36px);font-weight:400;letter-spacing:.08em}
 .view-head h2 span{color:var(--amber)}
@@ -88,7 +88,7 @@ a{color:inherit;text-decoration:none}
 .ghostbtn{background:none;border:1px solid var(--line2);color:var(--ink);font-family:var(--mono);font-size:12px;padding:7px 14px;cursor:pointer;letter-spacing:.05em;transition:.12s}
 .ghostbtn:hover{border-color:var(--amber);color:var(--amber)}
 .art-actions{display:flex;gap:8px;flex-wrap:wrap}
-.paper{position:relative;background:var(--paper);color:var(--paper-ink);padding:clamp(26px,5vw,56px);line-height:1.9;font-size:16.5px}
+.paper{position:relative;background:var(--paper);color:var(--paper-ink);padding:clamp(24px,4vw,52px);line-height:1.9;font-size:16.5px}
 .paper::before,.paper::after{content:'';position:absolute;width:16px;height:16px;pointer-events:none}
 .paper::before{top:8px;left:8px;border-top:2px solid var(--amber);border-left:2px solid var(--amber)}
 .paper::after{bottom:8px;right:8px;border-bottom:2px solid var(--amber);border-right:2px solid var(--amber)}
@@ -98,8 +98,8 @@ a{color:inherit;text-decoration:none}
 .art-title-rule{border:none;border-top:2px solid var(--paper-ink);position:relative;margin:14px 0 30px}
 .art-title-rule::after{content:'';position:absolute;left:0;top:3px;width:100%;border-top:1px solid var(--paper-ink)}
 
-.md-body h2{font-family:var(--disp);font-size:21px;font-weight:400;margin:34px 0 12px;padding-left:14px;border-left:4px solid var(--amber-deep);letter-spacing:.05em}
-.md-body h3{font-size:17.5px;margin:26px 0 10px;color:#4a3a20}
+.md-body h2{font-family:var(--disp);font-size:21px;font-weight:400;margin:34px 0 12px;padding-left:14px;border-left:4px solid var(--amber-deep);letter-spacing:.05em;scroll-margin-top:22px}
+.md-body h3{font-size:17.5px;margin:26px 0 10px;color:#4a3a20;scroll-margin-top:22px}
 .md-body p{margin:12px 0}
 .md-body ul,.md-body ol{padding-left:1.5em;margin:12px 0}
 .md-body li{margin:5px 0}
@@ -129,6 +129,100 @@ a{color:inherit;text-decoration:none}
 .art-nav a:hover b{color:var(--amber)}
 .art-nav .nx{text-align:right}
 .art-nav a span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ═══════════ 目录（TOC） ═══════════ */
+.art-layout{display:flex;gap:22px;align-items:flex-start}
+.art-main{flex:1;min-width:0}
+
+.toc{
+  flex:none;width:206px;
+  position:sticky;top:18px;
+  max-height:calc(100vh - 36px);
+  display:flex;flex-direction:column;
+  background:var(--panel);
+  border:1px solid var(--line);
+  transition:width .22s cubic-bezier(.4,0,.2,1);
+  overflow:hidden;
+}
+.toc-head{
+  display:flex;align-items:center;justify-content:space-between;gap:6px;
+  padding:10px 8px 10px 14px;border-bottom:1px dashed var(--line2);flex:none;
+}
+.toc-title{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.24em;
+  color:var(--amber);white-space:nowrap;
+}
+.toc-toggle{
+  background:none;border:1px solid var(--line2);color:var(--mut);
+  width:22px;height:22px;padding:0;flex:none;cursor:pointer;
+  font-family:var(--mono);font-size:13px;line-height:1;
+  display:flex;align-items:center;justify-content:center;transition:.12s;
+}
+.toc-toggle:hover{border-color:var(--amber);color:var(--amber);background:rgba(240,168,50,.08)}
+.toc-body{
+  flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;
+  padding:7px 0 12px;scrollbar-width:thin;scrollbar-color:var(--line2) transparent;
+}
+.toc-body::-webkit-scrollbar{width:5px}
+.toc-body::-webkit-scrollbar-thumb{background:var(--line2);border-radius:3px}
+.toc-body::-webkit-scrollbar-track{background:transparent}
+
+.toc-link{
+  display:flex;gap:8px;align-items:flex-start;width:100%;text-align:left;
+  background:none;border:none;border-left:2px solid transparent;
+  font-family:var(--body);font-size:13px;line-height:1.55;color:var(--mut);
+  padding:7px 11px 7px 12px;cursor:pointer;transition:background .12s,color .12s,border-color .12s;
+}
+.toc-link .toc-no{
+  font-family:var(--mono);font-size:10px;color:var(--dim);
+  flex:none;width:15px;padding-top:2px;transition:color .12s;
+}
+.toc-link .toc-tx{
+  flex:1;min-width:0;word-break:break-word;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.toc-link.lv3{padding-left:24px;font-size:12.5px}
+.toc-link.lv3 .toc-no{width:auto}
+.toc-link.lv3 .toc-no::before{content:'·'}
+.toc-link:hover{background:rgba(240,168,50,.09);color:var(--ink)}
+.toc-link.on{border-left-color:var(--amber);color:var(--amber);background:rgba(240,168,50,.08)}
+.toc-link.on .toc-no{color:var(--amber)}
+.toc-link:focus-visible{outline:1px solid var(--amber);outline-offset:-2px}
+
+.toc.collapsed{width:42px}
+.toc.collapsed .toc-head{padding:10px 0;justify-content:center}
+.toc.collapsed .toc-title{display:none}
+.toc.collapsed .toc-body{display:none}
+
+.toc-fab{
+  display:none;position:fixed;right:16px;bottom:20px;z-index:70;
+  width:48px;height:48px;border-radius:50%;border:none;cursor:pointer;
+  background:var(--amber);color:#16130f;font-size:20px;
+  align-items:center;justify-content:center;
+  box-shadow:0 6px 18px rgba(0,0,0,.45);transition:transform .14s;
+}
+.toc-fab:active{transform:scale(.92)}
+.toc-scrim{display:none;position:fixed;inset:0;background:rgba(8,6,4,.62);z-index:55}
+
+@media (max-width:1120px){
+  .art-layout{display:block}
+  .toc{
+    position:fixed;top:0;right:0;bottom:0;left:auto;
+    width:min(300px,84vw);height:100%;max-height:none;
+    z-index:60;border:none;border-left:1px solid var(--line2);
+    transform:translateX(101%);
+    transition:transform .26s cubic-bezier(.4,0,.2,1);
+    box-shadow:-16px 0 44px rgba(0,0,0,.55);
+    padding-top:env(safe-area-inset-top);
+  }
+  .toc.open{transform:none}
+  .toc.collapsed{width:min(300px,84vw)}
+  .toc.collapsed .toc-head{padding:10px 8px 10px 14px;justify-content:space-between}
+  .toc.collapsed .toc-title{display:block}
+  .toc.collapsed .toc-body{display:block}
+  .toc-fab{display:flex}
+  .toc-scrim.show{display:block}
+}
 
 #toast{position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(20px);background:#0d0b08;border:1px solid var(--amber);color:var(--amber);font-family:var(--mono);font-size:12.5px;padding:11px 22px;opacity:0;pointer-events:none;transition:.25s;z-index:100;letter-spacing:.05em}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -192,18 +286,14 @@ const BRANCH    = 'main';
 
 const FILES = {
   '游戏类文档': [
-    // ↓ 新增一篇就在这里加一行，如 '塞尔达攻略.md',
     '王者荣耀-评分机制.md',
     '金铲铲玩法.md'
-
   ],
   '临时文档分享': [
-    // ↓ 临时文档同样加在这里
     'temp.md',
     'test.md'
   ],
   'home': [
-    // 老家
     '鸡鸭鹅养殖.md',
     '老年人健康问题速查.md'
   ],
@@ -212,7 +302,7 @@ const FILES = {
 
 const REPO_URL = 'https://github.com/vestjin/share';
 
-const state = { view:'list', cur:null, curFile:null };
+const state = { view:'list', cur:null, curFile:null, tocItems:[] };
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const enc = p => p.split('/').map(encodeURIComponent).join('/');
@@ -288,6 +378,173 @@ const curDir = () => { const i = (state.curFile||'').lastIndexOf('/'); return i>
 /* ── 工具 ── */
 const baseName = p => p.split('/').pop().replace(/\.md$/i,'');
 
+/* ═══════════════════════════════════════════════════════════
+ * 目录（TOC）
+ * ═══════════════════════════════════════════════════════════ */
+const MOBILE_Q = '(max-width:1120px)';
+const isMobile = () => window.matchMedia(MOBILE_Q).matches;
+
+function slugify(s){
+  return String(s).trim().toLowerCase()
+    .replace(/[\s\u3000]+/g,'-')
+    .replace(/[^\w\u4e00-\u9fa5\-]/g,'')
+    .replace(/-+/g,'-')
+    .replace(/^-|-$/g,'') || 'sec';
+}
+
+/* 收集 h2/h3，补上 id，返回目录数据 */
+function buildToc(paper){
+  const body = paper.querySelector('.md-body');
+  if(!body) return [];
+  const used = new Set();
+  const items = [];
+  let n = 0;
+  body.querySelectorAll('h2, h3').forEach(h=>{
+    const text = (h.textContent || '').trim();
+    if(!text) return;
+    let id = h.id;
+    if(!id){
+      const base = slugify(text);
+      id = base;
+      let k = 1;
+      while(used.has(id) || document.getElementById(id)){ id = base + '-' + (++k); }
+      h.id = id;
+    }
+    used.add(id);
+    const level = h.tagName === 'H3' ? 3 : 2;
+    if(level === 2) n++;
+    items.push({
+      id, text, level,
+      num: level === 2 ? String(n).padStart(2,'0') : ''
+    });
+  });
+  return items;
+}
+
+/* 渲染并接管目录交互 */
+function setupToc(items, root){
+  state.tocItems = items;
+
+  const tocEl   = root.querySelector('#toc');
+  const tocBody = root.querySelector('#tocBody');
+  const toggle  = root.querySelector('#tocToggle');
+  const fab     = root.querySelector('#tocFab');
+  const scrim   = root.querySelector('#tocScrim');
+  if(!tocEl || !tocBody) return;
+
+  if(!items.length){
+    tocEl.style.display = 'none';
+    if(fab) fab.style.display = 'none';
+    return;
+  }
+
+  tocBody.innerHTML = items.map(it=>`
+    <button type="button" class="toc-link lv${it.level}" data-target="${esc(it.id)}" title="${esc(it.text)}">
+      <span class="toc-no">${esc(it.num)}</span>
+      <span class="toc-tx">${esc(it.text)}</span>
+    </button>`).join('');
+
+  /* 桌面端折叠状态持久化 */
+  const collapsed = localStorage.getItem('tocCollapsed') === '1';
+  tocEl.classList.toggle('collapsed', collapsed);
+  toggle.textContent = isMobile() ? '×' : (collapsed ? '›' : '‹');
+
+  tocBody.querySelectorAll('.toc-link').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      scrollToHead(btn.dataset.target);
+      if(isMobile()) closeDrawer();
+    });
+  });
+
+  toggle.addEventListener('click', ()=>{
+    if(isMobile()){ closeDrawer(); return; }
+    const c = tocEl.classList.toggle('collapsed');
+    toggle.textContent = c ? '›' : '‹';
+    localStorage.setItem('tocCollapsed', c ? '1' : '0');
+  });
+
+  if(fab)   fab.addEventListener('click', openDrawer);
+  if(scrim) scrim.addEventListener('click', closeDrawer);
+
+  function openDrawer(){ tocEl.classList.add('open'); scrim && scrim.classList.add('show'); }
+  function closeDrawer(){ tocEl.classList.remove('open'); scrim && scrim.classList.remove('show'); }
+
+  syncTocUI();
+  updateActiveToc();
+}
+
+/* 视口变化时同步按钮图标 / 关掉抽屉 */
+let resizeTimer;
+window.addEventListener('resize', ()=>{
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(syncTocUI, 140);
+});
+function syncTocUI(){
+  const tocEl  = document.getElementById('toc');
+  const toggle = document.getElementById('tocToggle');
+  const scrim  = document.getElementById('tocScrim');
+  if(!tocEl || !toggle) return;
+  if(isMobile()){
+    toggle.textContent = '×';
+    tocEl.classList.remove('collapsed');
+  }else{
+    tocEl.classList.remove('open');
+    if(scrim) scrim.classList.remove('show');
+    toggle.textContent = tocEl.classList.contains('collapsed') ? '›' : '‹';
+  }
+}
+
+function closeDrawer(){
+  const tocEl = document.getElementById('toc');
+  const scrim = document.getElementById('tocScrim');
+  if(tocEl) tocEl.classList.remove('open');
+  if(scrim) scrim.classList.remove('show');
+}
+
+function scrollToHead(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  const y = el.getBoundingClientRect().top + window.scrollY - 18;
+  window.scrollTo({ top: y < 0 ? 0 : y, behavior: 'smooth' });
+}
+
+/* 滚动高亮当前小节 */
+function updateActiveToc(){
+  const items = state.tocItems;
+  if(!items || !items.length) return;
+  const tocBody = document.getElementById('tocBody');
+  if(!tocBody) return;
+
+  const heads = items.map(it => document.getElementById(it.id)).filter(Boolean);
+  if(!heads.length) return;
+
+  let activeId = heads[0].id;
+  const EDGE = 96;
+  for(const el of heads){
+    if(el.getBoundingClientRect().top <= EDGE) activeId = el.id;
+    else break;
+  }
+  if(window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2){
+    activeId = heads[heads.length - 1].id;
+  }
+
+  const links = tocBody.querySelectorAll('.toc-link');
+  let activeLink = null;
+  links.forEach(l=>{
+    const on = l.dataset.target === activeId;
+    l.classList.toggle('on', on);
+    if(on) activeLink = l;
+  });
+
+  /* 让高亮项始终留在目录可视区内（只滚目录自身，不带动页面） */
+  if(activeLink){
+    const lb = activeLink.getBoundingClientRect();
+    const cb = tocBody.getBoundingClientRect();
+    if(lb.top < cb.top) tocBody.scrollTop -= (cb.top - lb.top) + 8;
+    else if(lb.bottom > cb.bottom) tocBody.scrollTop += (lb.bottom - cb.bottom) + 8;
+  }
+}
+
 /* ── 初始化 ── */
 function init(){
   $('#siteName').textContent = SITE_NAME;
@@ -311,7 +568,7 @@ function markCat(folder){
 
 /* ── 视图：文件清单 ── */
 function showList(folder, keepFilter){
-  state.view = 'list'; state.cur = folder; state.curFile = null;
+  state.view = 'list'; state.cur = folder; state.curFile = null; state.tocItems = [];
   markCat(folder);
   $('#progress').style.display='none';
   const files = FILES[folder] || [];
@@ -346,6 +603,7 @@ function showList(folder, keepFilter){
 /* ── 视图：文章 ── */
 async function showArticle(folder, fileName){
   state.view = 'article'; state.cur = folder; state.curFile = folder + '/' + fileName;
+  state.tocItems = [];
   markCat(folder);
   $('#progress').style.display='block';
   const filePath = folder + '/' + fileName;
@@ -363,8 +621,22 @@ async function showArticle(folder, fileName){
         <a class="ghostbtn" href="${esc(editUrl)}" target="_blank" rel="noopener">✎ 在 GitHub 编辑</a>
       </div>
     </div>
-    <article class="paper"><div class="loading">LOADING</div></article>
-    <nav class="art-nav" id="artNav"></nav>`;
+    <div class="art-layout">
+      <div class="art-main">
+        <article class="paper"><div class="loading">LOADING</div></article>
+        <nav class="art-nav" id="artNav"></nav>
+      </div>
+      <aside class="toc" id="toc" aria-label="文章目录">
+        <div class="toc-head">
+          <span class="toc-title">目录</span>
+          <button class="toc-toggle" id="tocToggle" type="button" aria-label="收起或展开目录">‹</button>
+        </div>
+        <nav class="toc-body" id="tocBody"></nav>
+      </aside>
+    </div>
+    <button class="toc-fab" id="tocFab" type="button" aria-label="打开目录">☰</button>
+    <div class="toc-scrim" id="tocScrim"></div>`;
+
   $('#backBtn').onclick = ()=>{ location.hash = '#/'+enc(folder); };
   $('#shareBtn').onclick = async ()=>{
     try{ await navigator.clipboard.writeText(location.href); toast('链接已复制，快去分享吧'); }
@@ -375,6 +647,7 @@ async function showArticle(folder, fileName){
       ta.remove();
     }
   };
+
   try{
     const md = await fetchRaw(filePath);
     const m = md.match(/^#\s+(.+)\r?$/m);
@@ -386,8 +659,21 @@ async function showArticle(folder, fileName){
       <div class="art-meta">${idx>=0?('NO.'+String(idx+1).padStart(2,'0')+' / '):''}<b>${esc(folder)}</b> · 约 ${words} 字 · 预计 ${Math.max(1,Math.round(words/400))} 分钟</div>
       <h1>${esc(title)}</h1><hr class="art-title-rule">
       <div class="md-body">${html}</div>`;
+
+    /* ★ 生成并挂载目录 */
+    setupToc(buildToc(paper), v);
+
+    /* 跨文档锚点跳转 */
     const anchorMeta = paper.querySelector('[data-anchor]');
-    if(anchorMeta){ const a = anchorMeta.dataset.anchor; anchorMeta.removeAttribute('data-anchor'); requestAnimationFrame(()=>{ const t=document.getElementById(a)||document.getElementsByName(a)[0]; if(t) t.scrollIntoView(); }); }
+    if(anchorMeta){
+      const a = anchorMeta.dataset.anchor;
+      anchorMeta.removeAttribute('data-anchor');
+      requestAnimationFrame(()=>{
+        const t = document.getElementById(a) || document.getElementsByName(a)[0];
+        if(t) t.scrollIntoView();
+      });
+    }
+
     if(files.length>1 && idx>=0){
       const prev = files[idx-1], next = files[idx+1];
       $('#artNav').innerHTML =
@@ -398,6 +684,8 @@ async function showArticle(folder, fileName){
   }catch(e){
     v.querySelector('.paper').innerHTML = `<div class="art-meta"><b>出错了</b></div><h1>无法加载这篇文档</h1><hr class="art-title-rule">
       <p style="color:var(--paper-mut)">检查两件事：① 文件 <code style="font-family:var(--mono)">${esc(filePath)}</code> 是否真的已提交到仓库；② <code>index.html</code> 顶部 <code>FILES</code> 清单里写的文件名是否和实际一致（含大小写、扩展名）。<br>（${esc(e.message)}）</p>`;
+    const t = v.querySelector('#toc'); if(t) t.style.display = 'none';
+    const f = v.querySelector('#tocFab'); if(f) f.style.display = 'none';
   }
 }
 
@@ -414,15 +702,18 @@ function onRoute(){
   else showList(seg[0], '');
 }
 
-/* ── 阅读进度条 ── */
+/* ── 滚动：阅读进度 + 目录高亮 ── */
+let tocRaf = null;
 window.addEventListener('scroll', ()=>{
   if(state.view!=='article') return;
   const h = document.documentElement;
   const p = h.scrollTop / Math.max(1, h.scrollHeight - h.clientHeight);
   $('#progress').style.width = (p*100)+'%';
+  if(tocRaf) return;
+  tocRaf = requestAnimationFrame(()=>{ tocRaf = null; updateActiveToc(); });
 }, { passive:true });
 
-/* ── 刷新按钮（此方案其实无需清缓存，仅作刷新用） ── */
+/* ── 刷新按钮 ── */
 $('#refreshBtn').addEventListener('click', ()=>location.reload());
 
 window.addEventListener('hashchange', onRoute);
